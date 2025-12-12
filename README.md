@@ -7,4 +7,4 @@ hi
 sjajksjk
 hghjgjghjgh
 
-Lando Norris is WC btw ;>
+Lando Norris is WC btw ;> i will ban you from the repo
