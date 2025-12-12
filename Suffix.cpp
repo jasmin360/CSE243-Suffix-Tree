@@ -79,12 +79,12 @@ class Suffix{
     };
     Node* getNode (int index){
         switch (text[index]) {
-            case 'A': return child[0];
-            case 'C': return child[1];
-            case 'G': return child[2];
-            case 'T': return child[3];
-            case '$': return child[4];
-            case '#': return child[5];
+            case 'A': return activePoint->activeNode->child[0];
+            case 'C': return activePoint->activeNode->child[1];
+            case 'G': return activePoint->activeNode->child[2];
+            case 'T': return activePoint->activeNode->child[3];
+            case '$': return activePoint->activeNode->child[4];
+            case '#': return activePoint->activeNode->child[5];
         }
     };
     
