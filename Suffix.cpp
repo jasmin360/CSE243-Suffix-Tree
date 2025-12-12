@@ -5,7 +5,7 @@ class Suffix{
     public:
     Suffix(){
         remaining = 0;
-        root = new Node();
+        root = new Node(0, nullptr);
         activePoint = new ActivePoint(root);
         globalEnd = new End(-1);
 
@@ -22,10 +22,13 @@ class Suffix{
     End* globalEnd;
     class Node{
     public:
-        Node(){
+        Node(int i, End* e){
             suffixLink = nullptr;
             index = -1;
+            start = i;
+            end = e;
         }
+        
         Node* child[6];
         ~Node();
         Node* suffixLink;
@@ -54,9 +57,15 @@ class Suffix{
     void insert(int index){
     };
 
-
+    void makeSuffixTree(string str){
+        text = str;
+        for(int i=0; i<text.length(); i++){
+            startPhase(i);
+        }
+    };
 
     void startPhase(int i){
+        Node* lastCreatedInternalNode = nullptr;
         remaining++;
         (globalEnd->end)++;
         while(remaining > 0){
@@ -67,14 +76,38 @@ class Suffix{
                     break;
                 }
                 else{
-                    Node* leaf = new Node();
-                    leaf->start = i;
-                    leaf->end = globalEnd;
-                    activePoint->activeNode->child[text[i]-'A'] = leaf;
+                    Node* leaf = new Node(i, globalEnd);
+                    activePoint->activeNode->child[getIndex(text[i])] = leaf;
                     remaining--;
+
                 }
-                activePoint->activeEdge = i;
+                
             }
+            else{
+                Node* node = getChildToSplit();
+                int ogStart = node->start;
+                node->start = ogStart + activePoint->activeLength;
+                Node* internalNode = new Node(ogStart, new End(ogStart + activePoint->activeLength -1));
+                Node* leaf = new Node(i, globalEnd);
+                internalNode->child[getIndex(text[i])] = leaf;
+                internalNode->child[getIndex(text[ogStart + activePoint->activeLength])] = node;
+                activePoint->activeNode->child[getIndex(text[ogStart])] = internalNode;
+                //handle index??
+                if(lastCreatedInternalNode != nullptr){
+                    lastCreatedInternalNode->suffixLink = internalNode;
+                }
+                lastCreatedInternalNode = internalNode;
+                internalNode->suffixLink = root;
+                if(activePoint->activeNode != root){
+                    activePoint->activeNode = activePoint->activeNode->suffixLink;
+                }
+                else{
+                    activePoint->activeEdge ++;
+                    activePoint->activeLength --;
+                }
+                remaining--;
+            }
+
         }
     };
     Node* getNode (int index){
@@ -86,6 +119,21 @@ class Suffix{
             case '$': return activePoint->activeNode->child[4];
             case '#': return activePoint->activeNode->child[5];
         }
+    };
+
+    int getIndex(char c){
+        switch (c) {
+            case 'A': return 0;
+            case 'C': return 1;
+            case 'G': return 2;
+            case 'T': return 3;
+            case '$': return 4;
+            case '#': return 5;
+        }
+    };
+
+    Node* getChildToSplit(){
+        return activePoint->activeNode->child[getIndex(text[activePoint->activeEdge])];
     };
     
 
