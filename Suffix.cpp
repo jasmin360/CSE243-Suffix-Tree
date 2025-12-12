@@ -1,28 +1,16 @@
+#include <iostream>
+using namespace std;
+
 class Suffix{
     public:
-    suffix(){
+    Suffix(){
         remaining = 0;
         root = new Node();
         activePoint = new ActivePoint(root);
-        end = new End(-1);
+        globalEnd = new End(-1);
 
     };
-    ~suffix();
-    class Node{
-    public:
-        Node(){
-            suffixLink = nullptr;
-            index = -1;
-        };
-        Node[] child = new Node[6];
-        ~Node();
-        Node* suffixLink;
-        int index;
-        End* end;
-        int start;
-
-
-    }
+    ~Suffix();
     class End{
     public:
         End(int end){
@@ -30,7 +18,22 @@ class Suffix{
         };
         ~End();
         int end;
-    }
+    };
+    End* globalEnd;
+    class Node{
+    public:
+        Node(){
+            suffixLink = nullptr;
+            index = -1;
+        }
+        Node* child[6];
+        ~Node();
+        Node* suffixLink;
+        int index;
+        End* end;
+        int start;
+    };
+
 
     class ActivePoint{
     public:
@@ -43,7 +46,7 @@ class Suffix{
         Node* activeNode;
         int activeEdge;
         int activeLength;
-    }
+    };
     Node* root;
     string text;
     ActivePoint* activePoint; 
@@ -55,7 +58,7 @@ class Suffix{
 
     void startPhase(int i){
         remaining++;
-        end->end++;
+        (globalEnd->end)++;
         while(remaining > 0){
             if(activePoint->activeLength == 0){
                 if(getNode(i)!=nullptr){
@@ -66,24 +69,24 @@ class Suffix{
                 else{
                     Node* leaf = new Node();
                     leaf->start = i;
-                    leaf->end = end;
+                    leaf->end = globalEnd;
                     activePoint->activeNode->child[text[i]-'A'] = leaf;
                     remaining--;
                 }
-                activePoint->activeEdge = index;
+                activePoint->activeEdge = i;
             }
         }
     };
     Node* getNode (int index){
-        case text[index]{
-            'A': return child[0];
-            'C': return child[1];
-            'G': return child[2];
-            'T': return child[3];
-            '$': return child[4];
-            '#': return child[5];
+        switch (text[index]) {
+            case 'A': return child[0];
+            case 'C': return child[1];
+            case 'G': return child[2];
+            case 'T': return child[3];
+            case '$': return child[4];
+            case '#': return child[5];
         }
-    }
+    };
     
 
     void extend(int index){
@@ -91,4 +94,4 @@ class Suffix{
     };
     
 
-}
+};
