@@ -26,6 +26,9 @@ public:
 
     };
 
+    void makeSuffixTree(string str);
+    void startPhase(int i);
+
     
     class ActivePoint{
     public:

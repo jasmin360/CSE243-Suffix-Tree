@@ -69,7 +69,7 @@ public:
     int currentStringID; // To determine the ownership of each suffix
     int remaining;
 
-    void makeSuffixTree(string str)
+    void Suffix::makeSuffixTree(string str)
     { // main function to make suffix tree
         text = str;
         for (int i = 0; i < text.length(); i++)
