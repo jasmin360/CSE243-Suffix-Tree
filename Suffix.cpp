@@ -8,6 +8,7 @@ class Suffix{
         root = new Node(0, nullptr); //start zero end null for root node
         activepoint = new ActivePoint(root); //active point starts at root
         globalEnd = new End(-1); //global end starts at -1 because only root is available and it increases with phase
+        currentStringID = -1; //initially no string is being processed
 
     };
     ~Suffix();
@@ -27,6 +28,10 @@ class Suffix{
             index = -1; //-1 indicates it's not a leaf node
             start = i; //start index of edge
             end = e; //end of edge, global end for leaf node
+            for(int k = 0; k < 6; k++){  //initialize all children to null
+                child[k] = nullptr;
+            }
+            
         }
         
         Node* child[6]; //array of 6 chars for all possible characters A,C,G,T,$,#
@@ -53,6 +58,7 @@ class Suffix{
     Node* root; //start node
     string text; 
     ActivePoint* activepoint; 
+    int currentStringID;  //To determine the ownership of each suffix
     int remaining;
 
     void makeSuffixTree(string str){ //main function to make suffix tree
@@ -79,6 +85,7 @@ class Suffix{
                 else { //if NO edge starting with current char exists
                     //RULE 2 EXTENSION
                     Node* node = new Node(i,globalEnd); //create new leaf node
+                    node->index = currentStringID; //set index to current string ID
                     activepoint->activeNode->child[getIndex(text[i])] = node; //add it to active node's children
                     remaining --; //decrement remaining suffix count
 
@@ -125,7 +132,8 @@ class Suffix{
 
                     End* currentend = new End(activepoint->activelength + oldnode->start -1); //end for current edge after split = active length + start of old node -1
                     Node* splitnot = new Node(oldnode->start,currentend); //new internal node created for the split edge
-                    Node* newnode = new Node(i,globalEnd); // new leaf node for current character 
+                    Node* newnode = new Node(i,globalEnd); // new leaf node for current character
+                    newnode->index = currentStringID; //set index to current string ID
                     activepoint->activeNode->child[currentedge] = splitnot; //replace old edge with split node just created 
                     oldnode->start += activepoint->activelength; //update start of old node to be after split node inserted (currentend + 1)
                     splitnot->child[getIndex(text[i])] = newnode; //add new leaf node as child of split internal node just created
@@ -170,4 +178,40 @@ class Suffix{
             case '#': return 5;
         }
     };
+
+    
+    void buildGST(const char* s1, const char* s2) {
+        Suffix gst; //suffix Tree object
+        gst.text = ""; // text before concat
+
+        // Append s1
+        for (int i = 0; s1[i] != '\0'; i++){
+            gst.text += s1[i];
+        }  
+        gst.text += '$';
+
+        // Append s2
+        for (int i = 0; s2[i] != '\0'; i++){
+            gst.text += s2[i];
+        }   
+        gst.text += '#';
+
+        // textexample = "s1$s2#"
+        int pos = 0;
+        // inserting chars before the '$'
+        gst.currentStringID = 0;
+        while (gst.text[pos] != '$') {
+            gst.startPhase(pos);
+            pos++;
+        }
+        gst.startPhase(pos); // insert '$'
+        pos++;
+        // inserting chars before the '#'
+        gst.currentStringID = 1;
+        while (gst.text[pos] != '#') {
+            gst.startPhase(pos);
+            pos++;
+        }
+        gst.startPhase(pos); // insert '#'
+    }
 };
