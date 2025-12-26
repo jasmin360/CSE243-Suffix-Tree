@@ -30,7 +30,7 @@ public:
     void makeSuffixTree(string str);
     void startPhase(int i);
 
-    vector<int> searchPattern(const string &pattern);
+    int* searchPattern(const string &pattern, int& count);
     
     class ActivePoint{
     public:
@@ -46,6 +46,10 @@ public:
     int remaining;
     void insert(int index);
     void extend(int index);
+
+    private:
+		void collectLeafIndices(Node* node, int*& arr, int& count, int& capacity);
+
     
 
 };

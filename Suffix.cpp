@@ -257,48 +257,57 @@ public:
         }
         gst.startPhase(pos); // insert '#'
     }
-    vector<int> Suffix::searchPattern(const string &pattern)
-    {
-        vector<int> result;
-        Node *current = root;
+    int* Suffix::searchPattern(const std::string& pattern, int& count) {
+        Node* current = root;
         int i = 0;
 
-        while (i < pattern.length())
-        {
+        while (i < pattern.length()) {
             int idx = getIndex(pattern[i]);
             if (idx == -1 || current->child[idx] == nullptr)
-                return result;
+                return nullptr;
 
-            Node *next = current->child[idx];
+            Node* next = current->child[idx];
             int edgeLen = next->end->end - next->start + 1;
 
-            for (int j = 0; j < edgeLen && i < pattern.length(); j++, i++)
-            {
+            for (int j = 0; j < edgeLen && i < pattern.length(); j++, i++) {
                 if (text[next->start + j] != pattern[i])
-                    return result;
+                    return nullptr;
             }
             current = next;
         }
 
+        
+        int capacity = 10;
+        int* result = new int[capacity];
+        count = 0;
 
-        collectLeafIndices(current, result);
+        collectLeafIndices(current, result, count, capacity);
         return result;
     }
 
-    void Suffix::collectLeafIndices(Node *node, vector<int> &result)
-    {
-        if (!node)
-            return;
 
-        if (node->index != -1)
-        {
-            result.push_back(node->index);
+    void Suffix::collectLeafIndices(
+        Node* node,
+        int*& arr,
+        int& count,
+        int& capacity
+    ) {
+        if (!node) return;
+
+        if (node->suffixIndex != -1) {
+            if (count == capacity) {
+                capacity *= 2;
+                int* newArr = new int[capacity];
+                for (int i = 0; i < count; i++)
+                    newArr[i] = arr[i];
+                delete[] arr;
+                arr = newArr;
+            }
+            arr[count++] = node->suffixIndex;
             return;
         }
 
-        for (int i = 0; i < 6; i++)
-        {
-            collectLeafIndices(node->child[i], result);
+        for (int i = 0; i < 6; i++) {
+            collectLeafIndices(node->child[i], arr, count, capacity);
         }
     }
-};
