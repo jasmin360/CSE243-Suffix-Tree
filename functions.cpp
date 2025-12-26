@@ -1,13 +1,16 @@
 #include <iostream>
 #include "functions.h"
-#include "Suffix.cpp"
+#include "Suffix.h"
 using namespace std;
 
 namespace DNA{
-    bool SearchPattern(const string& text, const string& pattern){
-        //Wait, Eyad is researching suffix.cpp now
-    }
+    
 
+    bool SearchPattern(const string& seqA, const string& seqB, const string& pattern){
+        Suffix tree;
+        tree.makeSuffixTree(seqA + "$" + seqB + "#");
+        // Implement search logic here
+    }
     //2nd function
     //3rd function
     //... other functions
