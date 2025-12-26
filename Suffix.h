@@ -1,5 +1,6 @@
 //ukonens algorithm 
 #include <iostream>
+#include <vector>
 using namespace std;
 class Suffix{
 public:
@@ -29,6 +30,7 @@ public:
     void makeSuffixTree(string str);
     void startPhase(int i);
 
+    int* searchPattern(const string &pattern, int& count);
     
     class ActivePoint{
     public:
@@ -44,6 +46,10 @@ public:
     int remaining;
     void insert(int index);
     void extend(int index);
+
+    private:
+		void collectLeafIndices(Node* node, int*& arr, int& count, int& capacity);
+
     
 
 };

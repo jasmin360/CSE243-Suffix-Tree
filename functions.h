@@ -1,9 +1,13 @@
-#include <iostream>
-using namespace std;
+#pragma once
+#include <string>
 
-namespace DNA{
-    bool SearchPattern(const string& text, const string& pattern);
-    //2nd function
-    //3rd function
-    //... other functions
+namespace DNA {
+
+    int* SearchPattern(
+        const std::string& seqA,
+        const std::string& seqB,
+        const std::string& pattern,
+        int& count
+    );
+
 }
