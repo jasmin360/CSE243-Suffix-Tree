@@ -26,24 +26,18 @@ public:
 
     };
 
-    class Edge{
-    public:
-        Edge(int start, End* end);
-        ~Edge();
-        int start;
-        End* end;
-    };
+    
     class ActivePoint{
     public:
         ActivePoint(Node* node);
         ~ActivePoint();
         Node* activeNode;
         int activeEdge;
-        int activeLength;
+        int activelength;
     };
     Node* root;
     string text;
-    ActivePoint* activePoint; 
+    ActivePoint* activepoint; 
     int remaining;
     void insert(int index);
     void extend(int index);
