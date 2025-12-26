@@ -170,15 +170,4 @@ class Suffix{
             case '#': return 5;
         }
     };
-
-    Node* getChildToSplit(){
-        return activepoint->activeNode->child[getIndex(text[activepoint->activeEdge])];
-    };
-    
-
-    void extend(int index){
-
-    };
-    
-
 };
