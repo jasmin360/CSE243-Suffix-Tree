@@ -294,7 +294,7 @@ public:
     ) {
         if (!node) return;
 
-        if (node->suffixIndex != -1) {
+        if (node->index != -1) {
             if (count == capacity) {
                 capacity *= 2;
                 int* newArr = new int[capacity];
@@ -303,7 +303,7 @@ public:
                 delete[] arr;
                 arr = newArr;
             }
-            arr[count++] = node->suffixIndex;
+            arr[count++] = node->index;
             return;
         }
 
@@ -311,3 +311,4 @@ public:
             collectLeafIndices(node->child[i], arr, count, capacity);
         }
     }
+};
