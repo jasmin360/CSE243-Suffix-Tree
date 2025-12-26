@@ -35,6 +35,7 @@ public:
             index = -1; //-1 indicates it's not a leaf node
             start = i;  // start index of edge
             end = e;    // end of edge, global end for leaf node
+            leafCount = 0; //number of leaves under this node
             for (int k = 0; k < 6; k++)
             { // initialize all children to null
                 child[k] = nullptr;
@@ -47,6 +48,7 @@ public:
         int index;
         End *end;
         int start;
+        int leafCount;
     };
 
     class ActivePoint
@@ -301,4 +303,51 @@ public:
             collectLeafIndices(node->child[i], result);
         }
     }
+
+    int countLeaves(Node *node){ // function to compute leaf count for each node
+
+        if (node==NULL){ // If node is null (aka no node exists)
+            return 0;
+        } 
+        if (node->index != -1){ // If node is a leaf node (index is -1 when not a leaf/internal node)
+            node->leafCount = 1; 
+            return 1;
+        }
+        int sum = 0; // sum to store total leaf count from all children
+        for (int i = 0; i < 6; i++) // for all possible children per node
+            sum += countLeaves(node->child[i]); // recursively compute leaf count for each child and add to sum
+
+        node->leafCount = sum; // set leaf count of current node to sum of leaf counts of all its children
+        return sum;
+    }
+
+    void findUniqueRegion(Node *node, int currentLength, int x, string &result){ // blip.a will do the dynamic array thing in a bit please dont edit it 
+
+        if (!node) { //if node is null
+            return;
+        }
+
+        for (int i = 0; i < 6; i++){ // for all possible children
+            Node *child = node->child[i]; // get child node
+            if (!child){ // if child node is null, continue
+                continue;
+            }
+
+            int edgeLen = child->end->end - child->start + 1; //length of current edge 
+            int newLength = currentLength + edgeLen; // new length after including this edge
+
+            if (child->leafCount == 1){ // if current subtree occurs exactly once (unique region)
+                if (currentLength < x && newLength >= x){ // if current length is less than x and new length is greater than or equal to x
+                    // extract substring of length x
+                    int startIndex = child->end->end - (newLength - x) + 1; 
+                    result = text.substr(startIndex, x);
+                }
+            }
+
+            findUniqueRegion(child, newLength, x, result); //recursive depth first search
+        }
+    }
+
+
+
 };
