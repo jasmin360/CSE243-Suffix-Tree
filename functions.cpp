@@ -1,17 +1,25 @@
-#include <iostream>
 #include "functions.h"
 #include "Suffix.h"
+#include <vector>
+#include <string>
+
 using namespace std;
 
-namespace DNA{
-    
+namespace DNA {
 
-    bool SearchPattern(const string& seqA, const string& seqB, const string& pattern){
-        Suffix tree;
-        tree.makeSuffixTree(seqA + "$" + seqB + "#");
-        // Implement search logic here
-    }
-    //2nd function
-    //3rd function
-    //... other functions
+std::vector<int> SearchPattern(
+    const std::string& seqA,
+    const std::string& seqB,
+    const std::string& pattern
+) {
+    Suffix tree;
+
+    // Build combined suffix tree
+    std::string combined = seqA + "$" + seqB + "#";
+    tree.makeSuffixTree(combined);
+
+    // Call suffix tree search
+    return tree.searchPattern(pattern);
+}
+
 }
