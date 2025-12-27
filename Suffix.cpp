@@ -92,8 +92,10 @@ void Suffix::startPhase(int i)
                     lastnode = NULL;                                        // remove last node since suffix link is already created
                 }
                 if (activepoint->activeNode != root)
+                
                 { // if active node is not root
-                    activepoint->activeNode = activepoint->activeNode->suffixLink;
+                    if (activepoint->activeNode->suffixLink != nullptr) {  //uiug
+                    activepoint->activeNode = activepoint->activeNode->suffixLink;}
                     // follow suffix link, where active node becomes the suffix linked node of current node
                 }
             }
@@ -103,30 +105,6 @@ void Suffix::startPhase(int i)
 
             int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
             Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
-
-            // If the child edge does not exist under the current active node,
-            // it's effectively a rule 2 extension: create a new leaf.
-            if (oldnode == nullptr)
-            {
-                Node* node = new Node(i, globalEnd);
-                node->index = i - remaining + 1;
-                activepoint->activeNode->child[currentedge] = node;
-                remaining--;
-
-                if (lastnode != NULL)
-                {
-                    lastnode->suffixLink = activepoint->activeNode;
-                    lastnode = NULL;
-                }
-
-                if (activepoint->activeNode != root)
-                {
-                    activepoint->activeNode = activepoint->activeNode->suffixLink;
-                }
-
-                // continue to next suffix to insert
-                continue;
-            }
 
             // WALKDOWN
             int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
@@ -180,8 +158,8 @@ void Suffix::startPhase(int i)
                     activepoint->activeEdge++;   // increment active edge
                     activepoint->activelength--; // decrement active length
                 }
-                else
-                    activepoint->activeNode = activepoint->activeNode->suffixLink; // if active node is NOT root, follow suffix link
+                else if(activepoint->activeNode->suffixLink != nullptr) {
+                    activepoint->activeNode = activepoint->activeNode->suffixLink;} // if active node is NOT root, follow suffix link
             }
         }
     }
@@ -423,7 +401,7 @@ int* Suffix::searchPattern(const std::string& pattern, int& count)
         current = next;
     }
 
-    int capacity = 20000;
+    int capacity = 10;
     int* result = new int[capacity];
     count = 0;
 
@@ -501,7 +479,7 @@ void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr,
             { // if current length is less than x and new length is greater than or equal to x
                 // extract substring of length x
                 int startIndex = child->end->end - (newLength - x) + 1;
-                arr[index++] = text.substr(startIndex, x);
+                arr[index] = text.substr(startIndex, x);
             }
         }
 
