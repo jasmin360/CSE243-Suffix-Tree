@@ -82,7 +82,7 @@ void Suffix::startPhase(int i)
             {
                 // RULE 2 EXTENSION
                 Node* node = new Node(i, globalEnd);                                          // create new leaf node
-                node->index = currentStringID;                                                // set index to current string ID
+                node->index = i - remaining +1;                                                // set index to current string ID
                 activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
                 remaining--;                                                                  // decrement remaining suffix count
 
@@ -137,7 +137,7 @@ void Suffix::startPhase(int i)
                 End* currentend = new End(activepoint->activelength + oldnode->start - 1); // end for current edge after split = active length + start of old node -1
                 Node* splitnot = new Node(oldnode->start, currentend);                      // new internal node created for the split edge
                 Node* newnode = new Node(i, globalEnd);                                     // new leaf node for current character
-                newnode->index = currentStringID;                                           // set index to current string ID
+                newnode->index = i - remaining +1;                                           // set index to current string ID
                 activepoint->activeNode->child[currentedge] = splitnot;                     // replace old edge with split node just created
                 oldnode->start += activepoint->activelength;                                // update start of old node to be after split node inserted (currentend + 1)
                 splitnot->child[getIndex(text[i])] = newnode;                               // add new leaf node as child of split internal node just created
