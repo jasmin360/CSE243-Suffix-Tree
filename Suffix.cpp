@@ -357,3 +357,4 @@ public:
         findUniqueRegion(child, newLength, x, result); // recursive depth first search
     }
 }
+};
