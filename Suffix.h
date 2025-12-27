@@ -1,5 +1,4 @@
-//ukonens algorithm
-#pragma once
+//ukonens algorithm 
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -17,18 +16,20 @@ public:
     End* globalEnd;
     class Node{
     public:
-        Node(int i, End* e);
+        Node();
         ~Node();
         Node* suffixLink;
         Node* child[6];
         int index;
         End* end;
         int start;
-		int leafCount;
+
+
     };
 
     void makeSuffixTree(string str);
     void startPhase(int i);
+
     int* searchPattern(const string &pattern, int& count);
     Node* getNode(int index);
     int getIndex(char c);
@@ -48,7 +49,6 @@ public:
     string text;
     ActivePoint* activepoint; 
     int remaining;
-	int currentStringID;
     void insert(int index);
     void extend(int index);
 
