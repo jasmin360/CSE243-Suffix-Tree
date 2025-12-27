@@ -475,11 +475,15 @@ void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr,
 
         if (child->leafCount == 1)
         { // if current subtree occurs exactly once (unique region)
-            if (currentLength < x && newLength >= x)
+            if (currentLength < x && newLength >= x && index<3)
             { // if current length is less than x and new length is greater than or equal to x
                 // extract substring of length x
-                int startIndex = child->end->end - (newLength - x) + 1;
+                int startIndex = child->end->end - (newLength - x) + 1; 
                 arr[index] = text.substr(startIndex, x);
+                index++;
+                if (index>=3){
+                    break;
+                }
             }
         }
 
