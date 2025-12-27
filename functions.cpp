@@ -18,5 +18,6 @@ namespace DNA {
         // Call suffix tree search
         return tree.searchPattern(pattern, count);
     }
+    
 
 }
