@@ -33,8 +33,12 @@ public:
     Node* getNode(int index);
     int getIndex(char c);
     void buildGST(const char* s1, const char* s2);
+    int edgeLength(Node* node);
+    bool isLeaf(Node* node);
     int countLeaves(Node* node);
-    void findUniqueRegion(Node* node, int currentLength, int x, string& result);
+    string findLargestCommonRegion(const char* s1, const char* s2);
+    void findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int index);
+    void dfs_LCS(Node* node, int s1Length, char* tempPath, int pathLen, bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, char* LCS);
     class ActivePoint{
     public:
         ActivePoint(Node* node);
