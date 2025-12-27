@@ -501,7 +501,7 @@ void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr,
             { // if current length is less than x and new length is greater than or equal to x
                 // extract substring of length x
                 int startIndex = child->end->end - (newLength - x) + 1;
-                arr[index] = text.substr(startIndex, x);
+                arr[index++] = text.substr(startIndex, x);
             }
         }
 

@@ -1,13 +1,14 @@
 #include "MainFrame.h"
 #include "functions.h" 
 #include <wx/wx.h>
-#include <wx/file.h>      // Required for file operations
-#include <wx/filename.h>  // Required for extracting filenames
+#include <wx/file.h>      
+#include <wx/filename.h>  
 #include <wx/statline.h>
+#include <wx/slider.h>    // <--- Required for the Slider
 #include <string>
 
 MainFrame::MainFrame(const wxString& title)
-    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(900, 700))
+    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(900, 750))
 {
     // --- THEME COLORS ---
     wxColour darkBg("#1e272e");
@@ -31,7 +32,7 @@ MainFrame::MainFrame(const wxString& title)
 
     wxButton* btnLoadFile = new wxButton(panel, wxID_ANY, "Load DNA File (.txt)");
     btnLoadFile->SetBackgroundColour(accentGreen);
-    btnLoadFile->SetForegroundColour(wxColour("#000000")); // Black text on green button
+    btnLoadFile->SetForegroundColour(wxColour("#000000"));
 
     lblStatus = new wxStaticText(panel, wxID_ANY, "No file loaded.");
     lblStatus->SetForegroundColour(textWhite);
@@ -39,7 +40,6 @@ MainFrame::MainFrame(const wxString& title)
     fileSizer->Add(btnLoadFile, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 15);
     fileSizer->Add(lblStatus, 1, wxALIGN_CENTER_VERTICAL);
 
-    // Bind Load Button
     btnLoadFile->Bind(wxEVT_BUTTON, &MainFrame::OnLoadFile, this);
 
     // --- SEARCH INPUT SECTION ---
@@ -55,15 +55,40 @@ MainFrame::MainFrame(const wxString& title)
     searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10);
     searchSizer->Add(btnSearch, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- OTHER TOOLS ---
+    // --- GENERAL TOOLS (Common / Repeats) ---
     wxBoxSizer* toolsSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region");
     wxButton* btnRepeat = new wxButton(panel, wxID_ANY, "Find Repeats");
-    wxButton* btnUnique = new wxButton(panel, wxID_ANY, "Find Unique Regions");
 
     toolsSizer->Add(btnCommon, 1, wxRIGHT, 5);
     toolsSizer->Add(btnRepeat, 1, wxRIGHT, 5);
-    toolsSizer->Add(btnUnique, 1);
+
+    // --- UNIQUE REGION SECTION (With Slider) ---
+    // We put this in its own row so it looks clean
+    wxStaticBoxSizer* uniqueGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Find Unique Region");
+    uniqueGroup->GetStaticBox()->SetForegroundColour(textWhite);
+
+    // 1. The Label showing value
+    lblSliderVal = new wxStaticText(panel, wxID_ANY, "Length: 5");
+    lblSliderVal->SetForegroundColour(textWhite);
+
+    // 2. The Slider (Default 5, Range 1-50)
+    sliderUnique = new wxSlider(panel, wxID_ANY, 5, 1, 50, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+    sliderUnique->SetBackgroundColour(darkBg);
+    sliderUnique->SetForegroundColour(textWhite);
+
+    // Bind slider movement to update the label immediately
+    sliderUnique->Bind(wxEVT_SLIDER, [this](wxCommandEvent&) {
+        lblSliderVal->SetLabel("Length: " + std::to_string(sliderUnique->GetValue()));
+        });
+
+    // 3. The Button
+    wxButton* btnUnique = new wxButton(panel, wxID_ANY, "Find Unique");
+    btnUnique->Bind(wxEVT_BUTTON, &MainFrame::UniqueRegions, this);
+
+    uniqueGroup->Add(lblSliderVal, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+    uniqueGroup->Add(sliderUnique, 1, wxEXPAND | wxRIGHT, 10); // Slider takes space
+    uniqueGroup->Add(btnUnique, 0, wxALIGN_CENTER_VERTICAL);
 
     // --- OUTPUT SECTION ---
     wxStaticText* labelRes = new wxStaticText(panel, wxID_ANY, "Results / Status:");
@@ -72,18 +97,20 @@ MainFrame::MainFrame(const wxString& title)
     output = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
     output->SetBackgroundColour(lightBg);
     output->SetForegroundColour(textWhite);
-    output->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL)); // Monospace font
+    output->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     // --- LAYOUT ASSEMBLY ---
     vbox->Add(labelTitle, 0, wxALL, 10);
     vbox->Add(fileSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
 
-    // Visual Separator line
     wxStaticLine* line1 = new wxStaticLine(panel, wxID_ANY);
     vbox->Add(line1, 0, wxEXPAND | wxALL, 10);
 
     vbox->Add(searchSizer, 0, wxEXPAND | wxALL, 10);
     vbox->Add(toolsSizer, 0, wxEXPAND | wxALL, 10);
+
+    // Add the new Slider Group
+    vbox->Add(uniqueGroup, 0, wxEXPAND | wxALL, 10);
 
     vbox->Add(labelRes, 0, wxLEFT | wxTOP, 10);
     vbox->Add(output, 1, wxEXPAND | wxALL, 10);
@@ -94,28 +121,23 @@ MainFrame::MainFrame(const wxString& title)
 // --- FILE LOADING FUNCTION ---
 void MainFrame::OnLoadFile(wxCommandEvent& event)
 {
-    // Open File Dialog
     wxFileDialog openFileDialog(this, "Open DNA Text File", "", "",
         "Text files (*.txt)|*.txt", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (openFileDialog.ShowModal() == wxID_CANCEL)
-        return; // User cancelled
+        return;
 
-    // Load file content
     wxString path = openFileDialog.GetPath();
     wxFile file;
     if (file.Open(path)) {
         wxString fileContent;
         file.ReadAll(&fileContent);
 
-        // --- CLEAN DATA IMMEDIATELY ---
-        // Convert to std::string for processing
+        // Clean Data
         std::string raw = fileContent.ToStdString();
-        loadedSequence = ""; // Clear old data
-
+        loadedSequence = "";
         for (char c : raw) {
             char upper = toupper(c);
-            // Only keep valid DNA bases
             if (upper == 'A' || upper == 'C' || upper == 'G' || upper == 'T') {
                 loadedSequence += upper;
             }
@@ -125,6 +147,14 @@ void MainFrame::OnLoadFile(wxCommandEvent& event)
         wxFileName fileName(path);
         lblStatus->SetLabel("Loaded: " + fileName.GetFullName() + " (" + std::to_string(loadedSequence.length()) + " bases)");
         output->SetValue("File loaded successfully.\nReady to search.");
+
+        // Optional: Update slider max range if the file is small
+        if (loadedSequence.length() < 50 && loadedSequence.length() > 0) {
+            sliderUnique->SetMax(loadedSequence.length());
+        }
+        else {
+            sliderUnique->SetMax(50); // Reset to default max
+        }
     }
     else {
         wxMessageBox("Cannot open file", "Error", wxICON_ERROR);
@@ -134,21 +164,16 @@ void MainFrame::OnLoadFile(wxCommandEvent& event)
 // --- SEARCH FUNCTION ---
 void MainFrame::SearchPattern(wxCommandEvent& event)
 {
-    // 1. Check if file is loaded
     if (loadedSequence.empty()) {
         output->SetValue("Error: No DNA file loaded. Please load a file first.");
         return;
     }
 
-    // 2. Get and Clean Pattern
     std::string rawPattern = searchInput->GetValue().ToStdString();
     std::string pattern = "";
-
     for (char c : rawPattern) {
         char upper = toupper(c);
-        if (upper == 'A' || upper == 'C' || upper == 'G' || upper == 'T') {
-            pattern += upper;
-        }
+        if (upper == 'A' || upper == 'C' || upper == 'G' || upper == 'T') pattern += upper;
     }
 
     if (pattern.empty()) {
@@ -156,33 +181,56 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
         return;
     }
 
-    // 3. Call Backend
     int count = 0;
     int* indices = DNA::SearchPattern(loadedSequence, pattern, count);
 
-    // 4. Display Results
     if (indices == nullptr || count == 0) {
-        output->SetValue("Pattern '" + pattern + "' NOT found in the sequence.");
+        output->SetValue("Pattern '" + pattern + "' NOT found.");
     }
     else {
         wxString resultMsg;
         resultMsg << "Pattern '" << pattern << "' found " << count << " times at indices:\n";
 
-        // If there are too many results, don't crash the UI text box
         int limit = (count > 5000) ? 5000 : count;
-
         for (int i = 0; i < limit; i++) {
             resultMsg << indices[i] << ", ";
         }
 
-        if (count > limit) {
-            resultMsg << "... (output truncated)";
-        }
-        else if (resultMsg.EndsWith(", ")) {
-            resultMsg.RemoveLast(2);
-        }
+        if (count > limit) resultMsg << "... (truncated)";
+        else if (resultMsg.EndsWith(", ")) resultMsg.RemoveLast(2);
 
         output->SetValue(resultMsg);
         delete[] indices;
     }
+}
+
+// --- UNIQUE REGIONS FUNCTION (Using Slider) ---
+void MainFrame::UniqueRegions(wxCommandEvent& event)
+{
+    if (loadedSequence.empty()) {
+        output->SetValue("Error: No DNA file loaded. Please load a file first.");
+        return;
+    }
+
+    // 1. Get value directly from Slider
+    int x = sliderUnique->GetValue();
+
+    // 2. Call Backend
+    std::string* res = DNA::findUniqueRegion(loadedSequence, x);
+
+    if (!res) {
+        output->SetValue("Error: Backend returned null.");
+        return;
+    }
+
+    // 3. Display Result
+    if (res[0].empty()) {
+        output->SetValue("No unique region of length " + std::to_string(x) + " found.");
+    }
+    else {
+        output->SetValue("Found Unique Region (Length " + std::to_string(x) + "):\n" + res[0]);
+    }
+
+    // 4. Cleanup
+    delete[] res;
 }

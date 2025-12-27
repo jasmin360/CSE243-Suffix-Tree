@@ -1,6 +1,5 @@
 #include "functions.h"
 #include "Suffix.h"
-#include "Suffix.cpp"
 
 namespace DNA {
 
@@ -19,13 +18,15 @@ namespace DNA {
         return tree.searchPattern(pattern, count);
     }
     
-    string* findUniqueRegion(const string& sequence,int x){
-        string* arr = new string[3];
-        string newSequence= sequence + "$";
+    std::string* findUniqueRegion(const std::string& sequence,int x){
+        // Return a single-element array containing the found unique region (or empty string if none)
+        std::string* arr = new std::string[1];
+        std::string newSequence = sequence + "$";
         Suffix tree;
         tree.makeSuffixTree(newSequence);
         tree.countLeaves(tree.root);
-        tree.findUniqueRegion(tree.root, x, 0, arr, 0);
+        tree.findUniqueRegion(tree.root, 0, x, arr, 0);
+        return arr;
 
     }
 }

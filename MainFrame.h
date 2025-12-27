@@ -13,6 +13,10 @@ private:
     wxTextCtrl* output;          // Results box
     wxTextCtrl* searchInput;     // Pattern input
 
+    // New Slider Elements
+    wxSlider* sliderUnique;      // The slider to pick 'X'
+    wxStaticText* lblSliderVal;  // Label to show current slider value (e.g. "Len: 10")
+
     // Data Storage
     std::string loadedSequence;  // Stores the DNA from the file
 
@@ -20,8 +24,8 @@ private:
     void OnLoadFile(wxCommandEvent& event);
     void SearchPattern(wxCommandEvent& event);
 
-    // Placeholder functions for buttons you haven't implemented yet
+    // Button handlers
     void CommonRegion(wxCommandEvent& event) {}
     void FindRepeats(wxCommandEvent& event) {}
-    void UniqueRegions(wxCommandEvent& event) {}
+    void UniqueRegions(wxCommandEvent& event); // Logic is now in .cpp
 };
