@@ -1,6 +1,7 @@
 #include "MainFrame.h"
+#include "functions.h"  // <--- CRITICAL: You must include this to use DNA::SearchPattern
 #include <wx/wx.h>
-#include <wx/spinctrl.h>
+#include <string>
 
 MainFrame::MainFrame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(900, 700))
@@ -45,23 +46,26 @@ MainFrame::MainFrame(const wxString& title)
     searchInput->SetForegroundColour(textWhite);
 
     // Radio Buttons (Grouped)
-    // wxRB_GROUP makes the first one start the group (mutually exclusive)
     radioSeqA = new wxRadioButton(panel, wxID_ANY, "Seq A", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     radioSeqB = new wxRadioButton(panel, wxID_ANY, "Seq B");
     radioSeqA->SetForegroundColour(textWhite);
     radioSeqB->SetForegroundColour(textWhite);
     radioSeqA->SetValue(true); // Default to Seq A
 
+    // Create the button
     wxButton* btnSearch = new wxButton(panel, wxID_ANY, "Search Pattern");
 
+    // FIXED: Bind the button IMMEDIATELY here.
+    // Do not redeclare it at the bottom of the function.
+    btnSearch->Bind(wxEVT_BUTTON, &MainFrame::SearchPattern, this);
+
     // Add items to the horizontal search row
-    searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10); // Input box takes available space
+    searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10);
     searchSizer->Add(radioSeqA, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
     searchSizer->Add(radioSeqB, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
     searchSizer->Add(btnSearch, 0, wxALIGN_CENTER_VERTICAL);
 
     // 2. Other Buttons
-    // We create them here, but we will add them with different flags later
     wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region");
     wxButton* btnRepeat = new wxButton(panel, wxID_ANY, "Find Repeats");
     wxButton* btnUnique = new wxButton(panel, wxID_ANY, "Find Unique Regions");
@@ -85,7 +89,7 @@ MainFrame::MainFrame(const wxString& title)
     // Add Search Row
     vbox->Add(searchSizer, 0, wxEXPAND | wxALL, 10);
 
-    // Add other buttons (Notice: Removed wxEXPAND, added wxALIGN_CENTER_HORIZONTAL)
+    // Add other buttons
     vbox->Add(btnCommon, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
     vbox->Add(btnRepeat, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
     vbox->Add(btnUnique, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
@@ -95,9 +99,58 @@ MainFrame::MainFrame(const wxString& title)
 
     panel->SetSizer(vbox);
 
-    // --- BINDINGS ---
-    // btnSearch->Bind(wxEVT_BUTTON, &MainFrame::SearchPattern, this);
-    // btnCommon->Bind(wxEVT_BUTTON, &MainFrame::CommonRegion, this);
-    // btnRepeat->Bind(wxEVT_BUTTON, &MainFrame::FindRepeats, this);
-    // btnUnique->Bind(wxEVT_BUTTON, &MainFrame::UniqueRegions, this);
+    // NOTE: Removed the broken binding code that was here.
+}
+
+void MainFrame::SearchPattern(wxCommandEvent& event)
+{
+    // 1. Get Pattern
+    std::string pattern = searchInput->GetValue().ToStdString();
+    if (pattern.empty()) {
+        output->SetValue("Please enter a pattern to search.");
+        return;
+    }
+
+    // 2. Get Sequence (A or B based on Radio Button)
+    std::string sequence;
+    if (radioSeqA->GetValue()) {
+        sequence = seqA->GetValue().ToStdString();
+    }
+    else {
+        sequence = seqB->GetValue().ToStdString();
+    }
+
+    if (sequence.empty()) {
+        output->SetValue("Error: Selected sequence is empty.");
+        return;
+    }
+
+    // 3. Call your EXISTING backend function
+    int count = 0;
+    int* indices = DNA::SearchPattern(sequence, pattern, count);
+
+    // 4. Display Results
+    if (indices == nullptr || count == 0) {
+        output->SetValue("Pattern not found.");
+    }
+    else {
+        wxString resultMsg;
+        resultMsg << "Pattern found at indices for "
+                  << (radioSeqA->GetValue() ? "SeqA" : "SeqB")  
+                  << " :\n";
+
+        for (int i = 0; i < count; i++) {
+            resultMsg << indices[i] << ", ";
+        }
+
+        // Clean up formatting (remove last comma)
+        if (resultMsg.EndsWith(", ")) {
+            resultMsg.RemoveLast(2);
+        }
+
+        output->SetValue(resultMsg);
+
+        // Clean up memory
+        delete[] indices;
+    }
 }
