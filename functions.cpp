@@ -25,7 +25,8 @@ namespace DNA {
         Suffix tree;
         tree.makeSuffixTree(newSequence);
         tree.countLeaves(tree.root);
-        tree.findUniqueRegion(tree.root, 0, x, arr, 0);
+        int temp =0;
+        tree.findUniqueRegion(tree.root, 0, x, arr, temp);
         return arr;
 
     }

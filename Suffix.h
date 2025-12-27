@@ -37,7 +37,7 @@ public:
     bool isLeaf(Node* node);
     int countLeaves(Node* node);
     string findLargestCommonRegion(const char* s1, const char* s2);
-    void findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int index);
+    void findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int &index);
     void dfs_LCS(Node* node, int s1Length, char* tempPath, int pathLen, bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, char* LCS);
     class ActivePoint{
     public:
