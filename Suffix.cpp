@@ -36,39 +36,6 @@ Suffix::Node::Node(int i, End* e)
         child[k] = nullptr;
     }
 }
-// --- Suffix Constructor ---
-Suffix::Suffix()
-{
-    remaining = 0;
-    root = new Node(0, nullptr);         // start zero end null for root node
-    activepoint = new ActivePoint(root); // active point starts at root
-    globalEnd = new End(-1);             // global end starts at -1 because only root is available and it increases with phase
-    currentStringID = -1;                // initially no string is being processed
-}
-
-Suffix::~Suffix() {}
-
-// --- End Class Implementation ---
-Suffix::End::End(int end)
-{
-    this->end = end;
-}
-
-Suffix::End::~End() {}
-
-// --- Node Class Implementation ---
-Suffix::Node::Node(int i, End* e)
-{
-    suffixLink = nullptr;
-    index = -1; // -1 indicates it's not a leaf node
-    start = i;  // start index of edge
-    end = e;    // end of edge, global end for leaf node
-    leafCount = 0; // number of leaves under this node
-    for (int k = 0; k < 6; k++)
-    { // initialize all children to null
-        child[k] = nullptr;
-    }
-}
 
 Suffix::Node::~Node() {}
 
@@ -83,34 +50,7 @@ Suffix::ActivePoint::ActivePoint(Node* node)
 Suffix::ActivePoint::~ActivePoint() {}
 
 // --- Main Algorithm Functions ---
-Suffix::Node::~Node() {}
 
-// --- ActivePoint Class Implementation ---
-Suffix::ActivePoint::ActivePoint(Node* node)
-{
-    activeNode = node; // starts at root
-    activeEdge = -1;   // -1 indicates no active edge
-    activelength = 0;  // active length starts at 0
-}
-
-Suffix::ActivePoint::~ActivePoint() {}
-
-// --- Main Algorithm Functions ---
-
-void Suffix::makeSuffixTree(string str)
-{ // main function to make suffix tree
-    text = str;
-    for (int i = 0; i < text.length(); i++)
-    {
-        startPhase(i);
-    }
-}
-
-void Suffix::startPhase(int i)
-{                                  // function per phase/ char
-    Node* lastnode = NULL; // to store last created internal node (from previous phase) for suffix link
-    globalEnd->end++;      // increment global end for rule 1 extension for leaves
-    remaining++;           // increment remaining suffix count
 void Suffix::makeSuffixTree(string str)
 { // main function to make suffix tree
     text = str;
@@ -131,20 +71,20 @@ void Suffix::startPhase(int i)
         if (activepoint->activelength == 0)
         { // if active length is 0
 
-                if (getNode(i) != NULL)
-                { // if there is an edge starting with current char
-                    // RULE 3 EXTENSION!! SHOWSTOPPER
-                    activepoint->activeEdge = i; // set active edge to current char index
-                    activepoint->activelength++; // increment active length
-                    break;
-                }
-                else
-                { // if NO edge starting with current char exists
-                    // RULE 2 EXTENSION
-                    Node *node = new Node(i, globalEnd);                      // create new leaf node
-                    node->index = i- remaining +1;                            // set index to current string ID
-                    activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
-                    remaining--;                                              // decrement remaining suffix count
+            if (getNode(i) != NULL)
+            {
+                // RULE 3 EXTENSION!! SHOWSTOPPER
+                activepoint->activeEdge = i; // set active edge to current char index
+                activepoint->activelength++; // increment active length
+                break;
+            }
+            else
+            {
+                // RULE 2 EXTENSION
+                Node* node = new Node(i, globalEnd);                                          // create new leaf node
+                node->index = currentStringID;                                                // set index to current string ID
+                activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
+                remaining--;                                                                  // decrement remaining suffix count
 
                 if (lastnode != NULL)
                 {                                                                       // if there is a last created internal node
@@ -163,19 +103,7 @@ void Suffix::startPhase(int i)
 
             int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
             Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
-            int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
-            Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
 
-            // WALKDOWN
-            int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
-            if (activepoint->activelength >= edgeLen)
-            { // if active length is greater than or equal to edge length
-                // move active point down the tree
-                activepoint->activeEdge += edgeLen;   // move active edge forward by edge length
-                activepoint->activelength -= edgeLen; // decrease active length by edge length
-                activepoint->activeNode = oldnode;    // set active node to node of current active edge
-                continue;
-            }
             // WALKDOWN
             int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
             if (activepoint->activelength >= edgeLen)
@@ -209,7 +137,7 @@ void Suffix::startPhase(int i)
                 End* currentend = new End(activepoint->activelength + oldnode->start - 1); // end for current edge after split = active length + start of old node -1
                 Node* splitnot = new Node(oldnode->start, currentend);                      // new internal node created for the split edge
                 Node* newnode = new Node(i, globalEnd);                                     // new leaf node for current character
-                newnode->index = i- remaining +1;                                           // set index to current string ID
+                newnode->index = currentStringID;                                           // set index to current string ID
                 activepoint->activeNode->child[currentedge] = splitnot;                     // replace old edge with split node just created
                 oldnode->start += activepoint->activelength;                                // update start of old node to be after split node inserted (currentend + 1)
                 splitnot->child[getIndex(text[i])] = newnode;                               // add new leaf node as child of split internal node just created
