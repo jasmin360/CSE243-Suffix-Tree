@@ -8,5 +8,6 @@ namespace DNA {
         const std::string& pattern,
         int& count
     );
+    string* findUniqueRegion(const string& sequence,int x);
 
 }

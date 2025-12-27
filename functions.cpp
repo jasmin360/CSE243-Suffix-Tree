@@ -1,5 +1,6 @@
 #include "functions.h"
 #include "Suffix.h"
+#include "Suffix.cpp"
 
 namespace DNA {
 
@@ -18,5 +19,13 @@ namespace DNA {
         return tree.searchPattern(pattern, count);
     }
     
+    string* findUniqueRegion(const string& sequence,int x){
+        string* arr = new string[3];
+        string newSequence= sequence + "$";
+        Suffix tree;
+        tree.makeSuffixTree(newSequence);
+        tree.countLeaves(tree.root);
+        tree.findUniqueRegion(tree.root, x, 0, arr, 0);
 
+    }
 }
