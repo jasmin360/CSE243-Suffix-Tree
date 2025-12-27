@@ -350,7 +350,7 @@ void Suffix::findUniqueRegion(Node* node, int currentLength, int x, string& resu
 
         findUniqueRegion(child, newLength, x, result); // recursive depth first search
     }
-    
+
     void findMaxRepetition(Node * node, int x, int& count, Node * result) {
 
     if (!node) { //if node is null
@@ -373,8 +373,8 @@ void Suffix::findUniqueRegion(Node* node, int currentLength, int x, string& resu
                 count = node->leafCount;// update max count
                 result = node;// update result node
             }
-
-            findComb(child, x, count, result); //recursive depth first search
+        }
+            findMaxRepetition(child, x, count, result); //recursive depth first search
         }
     }
 }
