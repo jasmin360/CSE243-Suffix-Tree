@@ -96,6 +96,7 @@ void Suffix::startPhase(int i)
                 { // if active node is not root
                     if (activepoint->activeNode->suffixLink != nullptr) {  //uiug
                     activepoint->activeNode = activepoint->activeNode->suffixLink;}
+                    else activepoint->activeNode = root;
                     // follow suffix link, where active node becomes the suffix linked node of current node
                 }
             }
@@ -158,8 +159,10 @@ void Suffix::startPhase(int i)
                     activepoint->activeEdge++;   // increment active edge
                     activepoint->activelength--; // decrement active length
                 }
-                else if(activepoint->activeNode->suffixLink != nullptr) {
-                    activepoint->activeNode = activepoint->activeNode->suffixLink;} // if active node is NOT root, follow suffix link
+                else{
+                    if (activepoint->activeNode->suffixLink != nullptr) activepoint->activeNode = activepoint->activeNode->suffixLink;
+                    else activepoint->activeNode = root;
+                }
             }
         }
     }
@@ -455,10 +458,13 @@ int Suffix::countLeaves(Node* node)
     return sum;
 }
 
-void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int index)
+void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int &index)
 { 
     if (!node)
     { // if node is null
+        return;
+    }
+    if(index>=3){
         return;
     }
 
@@ -475,15 +481,12 @@ void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr,
 
         if (child->leafCount == 1)
         { // if current subtree occurs exactly once (unique region)
-            if (currentLength < x && newLength >= x && index<3)
+            if (currentLength < x && newLength >= x)
             { // if current length is less than x and new length is greater than or equal to x
                 // extract substring of length x
-                int startIndex = child->end->end - (newLength - x) + 1; 
+                int startIndex = child->end->end - (newLength - x) + 1;
                 arr[index] = text.substr(startIndex, x);
                 index++;
-                if (index>=3){
-                    break;
-                }
             }
         }
 
