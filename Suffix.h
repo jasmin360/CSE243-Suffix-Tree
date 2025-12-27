@@ -34,6 +34,7 @@ public:
     int getIndex(char c);
     void buildGST(const char* s1, const char* s2);
     int countLeaves(Node* node);
+    void findMaxRepetition(Node * node, int x, int& count, Node * result)
     void findUniqueRegion(Node* node, int currentLength, int x, string& result);
     class ActivePoint{
     public:

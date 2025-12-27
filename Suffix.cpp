@@ -350,4 +350,32 @@ void Suffix::findUniqueRegion(Node* node, int currentLength, int x, string& resu
 
         findUniqueRegion(child, newLength, x, result); // recursive depth first search
     }
+    
+    void findMaxRepetition(Node * node, int x, int& count, Node * result) {
+
+    if (!node) { //if node is null
+        return;
+    }
+    if (x <= 0) {// edge length must be positive
+        return;
+    }
+
+    for (int i = 0; i < 6; i++) { // for all possible children
+        Node* child = node->child[i]; // get child node
+        if (!child) { // if child node is null, continue
+            continue;
+        }
+
+        int edgeLen = child->end->end - child->start + 1; //length of current edge
+
+        if (edgelen == x) {// if edge length equals x
+            if (count < node->leafCount) {// if current node has more leaves than previous max
+                count = node->leafCount;// update max count
+                result = node;// update result node
+            }
+
+            findComb(child, x, count, result); //recursive depth first search
+        }
+    }
+}
 }
