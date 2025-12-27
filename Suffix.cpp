@@ -104,6 +104,30 @@ void Suffix::startPhase(int i)
             int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
             Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
 
+            // If the child edge does not exist under the current active node,
+            // it's effectively a rule 2 extension: create a new leaf.
+            if (oldnode == nullptr)
+            {
+                Node* node = new Node(i, globalEnd);
+                node->index = i - remaining + 1;
+                activepoint->activeNode->child[currentedge] = node;
+                remaining--;
+
+                if (lastnode != NULL)
+                {
+                    lastnode->suffixLink = activepoint->activeNode;
+                    lastnode = NULL;
+                }
+
+                if (activepoint->activeNode != root)
+                {
+                    activepoint->activeNode = activepoint->activeNode->suffixLink;
+                }
+
+                // continue to next suffix to insert
+                continue;
+            }
+
             // WALKDOWN
             int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
             if (activepoint->activelength >= edgeLen)
@@ -265,7 +289,7 @@ int* Suffix::searchPattern(const std::string& pattern, int& count)
         current = next;
     }
 
-    int capacity = 10;
+    int capacity = 20000;
     int* result = new int[capacity];
     count = 0;
 

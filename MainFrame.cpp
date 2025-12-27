@@ -1,6 +1,9 @@
 #include "MainFrame.h"
-#include "functions.h"  // <--- CRITICAL: You must include this to use DNA::SearchPattern
+#include "functions.h" 
 #include <wx/wx.h>
+#include <wx/file.h>      // Required for file operations
+#include <wx/filename.h>  // Required for extracting filenames
+#include <wx/statline.h>
 #include <string>
 
 MainFrame::MainFrame(const wxString& title)
@@ -10,6 +13,7 @@ MainFrame::MainFrame(const wxString& title)
     wxColour darkBg("#1e272e");
     wxColour lightBg("#485460");
     wxColour textWhite(*wxWHITE);
+    wxColour accentGreen("#05c46b");
 
     // Main Panel
     wxPanel* panel = new wxPanel(this);
@@ -18,139 +22,167 @@ MainFrame::MainFrame(const wxString& title)
 
     wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
 
-    // --- INPUT SECTION ---
+    // --- FILE UPLOAD SECTION ---
+    wxStaticText* labelTitle = new wxStaticText(panel, wxID_ANY, "DNA Sequence Input:");
+    labelTitle->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    labelTitle->SetForegroundColour(textWhite);
 
-    // Sequence A
-    wxStaticText* labelA = new wxStaticText(panel, wxID_ANY, "DNA Sequence A:");
-    labelA->SetForegroundColour(textWhite);
+    wxBoxSizer* fileSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    seqA = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-    seqA->SetBackgroundColour(lightBg);
-    seqA->SetForegroundColour(textWhite);
+    wxButton* btnLoadFile = new wxButton(panel, wxID_ANY, "Load DNA File (.txt)");
+    btnLoadFile->SetBackgroundColour(accentGreen);
+    btnLoadFile->SetForegroundColour(wxColour("#000000")); // Black text on green button
 
-    // Sequence B
-    wxStaticText* labelB = new wxStaticText(panel, wxID_ANY, "DNA Sequence B:");
-    labelB->SetForegroundColour(textWhite);
+    lblStatus = new wxStaticText(panel, wxID_ANY, "No file loaded.");
+    lblStatus->SetForegroundColour(textWhite);
 
-    seqB = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-    seqB->SetBackgroundColour(lightBg);
-    seqB->SetForegroundColour(textWhite);
+    fileSizer->Add(btnLoadFile, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 15);
+    fileSizer->Add(lblStatus, 1, wxALIGN_CENTER_VERTICAL);
 
-    // --- BUTTONS & SEARCH SECTION ---
+    // Bind Load Button
+    btnLoadFile->Bind(wxEVT_BUTTON, &MainFrame::OnLoadFile, this);
 
-    // 1. Search Row (Horizontal Sizer)
+    // --- SEARCH INPUT SECTION ---
     wxBoxSizer* searchSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    searchInput = new wxTextCtrl(panel, wxID_ANY, "Enter pattern...");
+    searchInput = new wxTextCtrl(panel, wxID_ANY, "Enter pattern (e.g. TG)...");
     searchInput->SetBackgroundColour(lightBg);
     searchInput->SetForegroundColour(textWhite);
 
-    // Radio Buttons (Grouped)
-    radioSeqA = new wxRadioButton(panel, wxID_ANY, "Seq A", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    radioSeqB = new wxRadioButton(panel, wxID_ANY, "Seq B");
-    radioSeqA->SetForegroundColour(textWhite);
-    radioSeqB->SetForegroundColour(textWhite);
-    radioSeqA->SetValue(true); // Default to Seq A
-
-    // Create the button
     wxButton* btnSearch = new wxButton(panel, wxID_ANY, "Search Pattern");
-
-    // FIXED: Bind the button IMMEDIATELY here.
-    // Do not redeclare it at the bottom of the function.
     btnSearch->Bind(wxEVT_BUTTON, &MainFrame::SearchPattern, this);
 
-    // Add items to the horizontal search row
     searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10);
-    searchSizer->Add(radioSeqA, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
-    searchSizer->Add(radioSeqB, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
     searchSizer->Add(btnSearch, 0, wxALIGN_CENTER_VERTICAL);
 
-    // 2. Other Buttons
+    // --- OTHER TOOLS ---
+    wxBoxSizer* toolsSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region");
     wxButton* btnRepeat = new wxButton(panel, wxID_ANY, "Find Repeats");
     wxButton* btnUnique = new wxButton(panel, wxID_ANY, "Find Unique Regions");
 
+    toolsSizer->Add(btnCommon, 1, wxRIGHT, 5);
+    toolsSizer->Add(btnRepeat, 1, wxRIGHT, 5);
+    toolsSizer->Add(btnUnique, 1);
+
     // --- OUTPUT SECTION ---
-    wxStaticText* labelRes = new wxStaticText(panel, wxID_ANY, "Results:");
+    wxStaticText* labelRes = new wxStaticText(panel, wxID_ANY, "Results / Status:");
     labelRes->SetForegroundColour(textWhite);
 
     output = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
     output->SetBackgroundColour(lightBg);
     output->SetForegroundColour(textWhite);
+    output->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL)); // Monospace font
 
-    // --- ADDING EVERYTHING TO MAIN LAYOUT ---
+    // --- LAYOUT ASSEMBLY ---
+    vbox->Add(labelTitle, 0, wxALL, 10);
+    vbox->Add(fileSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
 
-    vbox->Add(labelA, 0, wxALL, 5);
-    vbox->Add(seqA, 1, wxEXPAND | wxALL, 5);
+    // Visual Separator line
+    wxStaticLine* line1 = new wxStaticLine(panel, wxID_ANY);
+    vbox->Add(line1, 0, wxEXPAND | wxALL, 10);
 
-    vbox->Add(labelB, 0, wxALL, 5);
-    vbox->Add(seqB, 1, wxEXPAND | wxALL, 5);
-
-    // Add Search Row
     vbox->Add(searchSizer, 0, wxEXPAND | wxALL, 10);
+    vbox->Add(toolsSizer, 0, wxEXPAND | wxALL, 10);
 
-    // Add other buttons
-    vbox->Add(btnCommon, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
-    vbox->Add(btnRepeat, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
-    vbox->Add(btnUnique, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
-
-    vbox->Add(labelRes, 0, wxALL, 5);
-    vbox->Add(output, 2, wxEXPAND | wxALL, 5);
+    vbox->Add(labelRes, 0, wxLEFT | wxTOP, 10);
+    vbox->Add(output, 1, wxEXPAND | wxALL, 10);
 
     panel->SetSizer(vbox);
-
-    // NOTE: Removed the broken binding code that was here.
 }
 
-void MainFrame::SearchPattern(wxCommandEvent& event)
+// --- FILE LOADING FUNCTION ---
+void MainFrame::OnLoadFile(wxCommandEvent& event)
 {
-    // 1. Get Pattern
-    std::string pattern = searchInput->GetValue().ToStdString();
-    if (pattern.empty()) {
-        output->SetValue("Please enter a pattern to search.");
-        return;
-    }
+    // Open File Dialog
+    wxFileDialog openFileDialog(this, "Open DNA Text File", "", "",
+        "Text files (*.txt)|*.txt", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-    // 2. Get Sequence (A or B based on Radio Button)
-    std::string sequence;
-    if (radioSeqA->GetValue()) {
-        sequence = seqA->GetValue().ToStdString();
+    if (openFileDialog.ShowModal() == wxID_CANCEL)
+        return; // User cancelled
+
+    // Load file content
+    wxString path = openFileDialog.GetPath();
+    wxFile file;
+    if (file.Open(path)) {
+        wxString fileContent;
+        file.ReadAll(&fileContent);
+
+        // --- CLEAN DATA IMMEDIATELY ---
+        // Convert to std::string for processing
+        std::string raw = fileContent.ToStdString();
+        loadedSequence = ""; // Clear old data
+
+        for (char c : raw) {
+            char upper = toupper(c);
+            // Only keep valid DNA bases
+            if (upper == 'A' || upper == 'C' || upper == 'G' || upper == 'T') {
+                loadedSequence += upper;
+            }
+        }
+
+        // Update UI
+        wxFileName fileName(path);
+        lblStatus->SetLabel("Loaded: " + fileName.GetFullName() + " (" + std::to_string(loadedSequence.length()) + " bases)");
+        output->SetValue("File loaded successfully.\nReady to search.");
     }
     else {
-        sequence = seqB->GetValue().ToStdString();
+        wxMessageBox("Cannot open file", "Error", wxICON_ERROR);
     }
+}
 
-    if (sequence.empty()) {
-        output->SetValue("Error: Selected sequence is empty.");
+// --- SEARCH FUNCTION ---
+void MainFrame::SearchPattern(wxCommandEvent& event)
+{
+    // 1. Check if file is loaded
+    if (loadedSequence.empty()) {
+        output->SetValue("Error: No DNA file loaded. Please load a file first.");
         return;
     }
 
-    // 3. Call your EXISTING backend function
+    // 2. Get and Clean Pattern
+    std::string rawPattern = searchInput->GetValue().ToStdString();
+    std::string pattern = "";
+
+    for (char c : rawPattern) {
+        char upper = toupper(c);
+        if (upper == 'A' || upper == 'C' || upper == 'G' || upper == 'T') {
+            pattern += upper;
+        }
+    }
+
+    if (pattern.empty()) {
+        output->SetValue("Error: Search pattern is empty.");
+        return;
+    }
+
+    // 3. Call Backend
     int count = 0;
-    int* indices = DNA::SearchPattern(sequence, pattern, count);
+    int* indices = DNA::SearchPattern(loadedSequence, pattern, count);
 
     // 4. Display Results
     if (indices == nullptr || count == 0) {
-        output->SetValue("Pattern not found.");
+        output->SetValue("Pattern '" + pattern + "' NOT found in the sequence.");
     }
     else {
         wxString resultMsg;
-        resultMsg << "Pattern found at indices for "
-                  << (radioSeqA->GetValue() ? "SeqA" : "SeqB")  
-                  << " :\n";
+        resultMsg << "Pattern '" << pattern << "' found " << count << " times at indices:\n";
 
-        for (int i = 0; i < count; i++) {
+        // If there are too many results, don't crash the UI text box
+        int limit = (count > 5000) ? 5000 : count;
+
+        for (int i = 0; i < limit; i++) {
             resultMsg << indices[i] << ", ";
         }
 
-        // Clean up formatting (remove last comma)
-        if (resultMsg.EndsWith(", ")) {
+        if (count > limit) {
+            resultMsg << "... (output truncated)";
+        }
+        else if (resultMsg.EndsWith(", ")) {
             resultMsg.RemoveLast(2);
         }
 
         output->SetValue(resultMsg);
-
-        // Clean up memory
         delete[] indices;
     }
 }

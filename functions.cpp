@@ -11,7 +11,7 @@ namespace DNA {
         count = 0;
 
         Suffix tree;
-        std::string seq = sequence;
+        std::string seq = sequence + "$";
         tree.makeSuffixTree(seq);
 
         // Call suffix tree search
