@@ -60,113 +60,125 @@ void Suffix::makeSuffixTree(string str)
     }
 }
 
-void Suffix::startPhase(int i)
-{                                  // function per phase/ char
-    Node* lastnode = NULL; // to store last created internal node (from previous phase) for suffix link
-    globalEnd->end++;      // increment global end for rule 1 extension for leaves
-    remaining++;           // increment remaining suffix count
+ void Suffix::startPhase(int i)
+ {                                  // function per phase/ char
+     Node* lastnode = NULL; // to store last created internal node (from previous phase) for suffix link
+     globalEnd->end = i;      // increment global end for rule 1 extension for leaves
+     remaining++;           // increment remaining suffix count
 
-    while (remaining > 0)
-    { // while there are suffixes to be added
-        if (activepoint->activelength == 0)
-        { // if active length is 0
+     while (remaining > 0)
+     { // while there are suffixes to be added
+         if (activepoint->activelength == 0)
+         { // if active length is 0
 
-            if (getNode(i) != NULL)
-            {
-                // RULE 3 EXTENSION!! SHOWSTOPPER
-                activepoint->activeEdge = i; // set active edge to current char index
-                activepoint->activelength++; // increment active length
-                break;
-            }
-            else
-            {
-                // RULE 2 EXTENSION
-                Node* node = new Node(i, globalEnd);                                          // create new leaf node
-                node->index = i - remaining +1;                                                // set index to current string ID
-                activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
-                remaining--;                                                                  // decrement remaining suffix count
+             if (activepoint->activeNode->child[getIndex(text[i])] != nullptr)
+             {
+                 // RULE 3 EXTENSION!! SHOWSTOPPER
+                 activepoint->activeEdge = i; // set active edge to current char index
+                 activepoint->activelength ++; // increment active length
+                 if (lastnode != NULL )
+                 {                                                                       // if there is a last created internal node
+                     lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
+                     lastnode = NULL;        // remove last node since suffix link is already created
+                 }
+                 break;
 
-                if (lastnode != NULL)
-                {                                                                       // if there is a last created internal node
-                    lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
-                    lastnode = NULL;                                        // remove last node since suffix link is already created
-                }
-                if (activepoint->activeNode != root)
-                
-                { // if active node is not root
-                    if (activepoint->activeNode->suffixLink != nullptr) {  //uiug
-                    activepoint->activeNode = activepoint->activeNode->suffixLink;}
-                    else activepoint->activeNode = root;
-                    // follow suffix link, where active node becomes the suffix linked node of current node
-                }
-            }
-        }
-        else
-        { // if active length is NOT 0
+             }
+             else
+             {
+                 // RULE 2 EXTENSION
+                 Node* node = new Node(i, globalEnd);                                          // create new leaf node
+                 node->index = i - remaining + 1;                                                // set index to current string ID
+                 activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
+                 remaining--;                                                                  // decrement remaining suffix count
 
-            int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
-            Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
+                 if (lastnode != NULL)
+                 {                                                                       // if there is a last created internal node
+                     lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
+                     lastnode = NULL;                                        // remove last node since suffix link is already created
+                 }
+                 if (activepoint->activeNode != root)
 
-            // WALKDOWN
-            int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
-            if (activepoint->activelength >= edgeLen)
-            { // if active length is greater than or equal to edge length
-                // move active point down the tree
-                activepoint->activeEdge += edgeLen;   // move active edge forward by edge length
-                activepoint->activelength -= edgeLen; // decrease active length by edge length
-                activepoint->activeNode = oldnode;    // set active node to node of current active edge
-                continue;
-            }
+                 { // if active node is not root
+                     if (activepoint->activeNode->suffixLink != nullptr) {  //uiug
+                         activepoint->activeNode = activepoint->activeNode->suffixLink;
+                     }
+                     else activepoint->activeNode = root;
+			activepoint->activeEdge = i - remaining + 1;
+                     // follow suffix link, where active node becomes the suffix linked node of current node
+                 }
+                 else {
+                     activepoint->activeEdge = i - remaining + 1; // set active edge to next suffix's first character
+                     if (activepoint->activelength > 0) activepoint->activelength--;                  // decrement active length
+                 }
+             }
+         }
+         else
+         { // if active length is NOT 0
 
-            if (text[oldnode->start + activepoint->activelength] == text[i])
-            { // next char on edge matches current char
-                // RULE 3 EXTENSION!! SHOWSTOPPER
+             int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
+             Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
 
-                if (lastnode != NULL)
-                {                                                                       // if there is a last created internal node
-                    lastnode->suffixLink = activepoint->activeNode; // make the suffix link of last node be the current active node
-                    lastnode = NULL;                                        // remove last node since suffix link is already created
-                }
+             // WALKDOWN
+             int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
+             if (activepoint->activelength >= edgeLen)
+             { // if active length is greater than or equal to edge length
+                 // move active point down the tree
+                 activepoint->activeEdge += edgeLen;   // move active edge forward by edge length
+                 activepoint->activelength -= edgeLen; // decrease active length by edge length
+                 activepoint->activeNode = oldnode;    // set active node to node of current active edge
+                 continue;
+             }
 
-                activepoint->activelength++; // increment active length
-                break;                       // SHOWSTOPPERR
-            }
-            else
-            { // next char on edge DOES NOT matche current char
+             if (text[oldnode->start + activepoint->activelength] == text[i])
+             { // next char on edge matches current char
+                 // RULE 3 EXTENSION!! SHOWSTOPPER
 
-                // split edge
-                // RULE 2 EXTENSION
+                 if (lastnode != NULL)
+                 {                                                                       // if there is a last created internal node
+                     lastnode->suffixLink = activepoint->activeNode; // make the suffix link of last node be the current active node
+                     lastnode = NULL;                                // remove last node since suffix link is already created
+                 }
 
-                End* currentend = new End(activepoint->activelength + oldnode->start - 1); // end for current edge after split = active length + start of old node -1
-                Node* splitnot = new Node(oldnode->start, currentend);                      // new internal node created for the split edge
-                Node* newnode = new Node(i, globalEnd);                                     // new leaf node for current character
-                newnode->index = i - remaining +1;                                           // set index to current string ID
-                activepoint->activeNode->child[currentedge] = splitnot;                     // replace old edge with split node just created
-                oldnode->start += activepoint->activelength;                                // update start of old node to be after split node inserted (currentend + 1)
-                splitnot->child[getIndex(text[i])] = newnode;                               // add new leaf node as child of split internal node just created
-                splitnot->child[getIndex(text[oldnode->start])] = oldnode;                  // reattach the old child node as child of split internal node just created (after editing its start to reflect the end of split node)
+                 activepoint->activelength++; // increment active length
+                 break;
+             }
+             else
+             { // next char on edge DOES NOT matche current char
 
-                if (lastnode != NULL)
-                {                                            // if there is a last created internal node
-                    lastnode->suffixLink = splitnot; // connect suffix link to the current split node from last internal node created
-                }
+                 // split edge
+                 // RULE 2 EXTENSION
 
-                lastnode = splitnot; // update last created internal node to current split node
-                remaining--;         // decrement suffix count remaining
+                 End* currentend = new End(activepoint->activelength + oldnode->start - 1); // end for current edge after split = active length + start of old node -1
+                 Node* splitnot = new Node(oldnode->start, currentend);                      // new internal node created for the split edge
+                 Node* newnode = new Node(i, globalEnd);                                     // new leaf node for current character
+                 newnode->index = i - remaining + 1;                                           // set index to current string ID
+                 activepoint->activeNode->child[currentedge] = splitnot;                     // replace old edge with split node just created
+                 oldnode->start += activepoint->activelength;                                // update start of old node to be after split node inserted (currentend + 1)
+                 splitnot->child[getIndex(text[i])] = newnode;                               // add new leaf node as child of split internal node just created
+                 splitnot->child[getIndex(text[oldnode->start])] = oldnode;                  // reattach the old child node as child of split internal node just created (after editing its start to reflect the end of split node)
 
-                if (activepoint->activeNode == root)
-                {                                        // if active node is root
-                    activepoint->activeEdge++;   // increment active edge
-                    activepoint->activelength--; // decrement active length
-                }
-                else{
-                    if (activepoint->activeNode->suffixLink != nullptr) activepoint->activeNode = activepoint->activeNode->suffixLink;
-                    else activepoint->activeNode = root;
-                }
-            }
-        }
-    }
-}
+                 if (lastnode != NULL)
+                 {                                            // if there is a last created internal node
+                     lastnode->suffixLink = splitnot; // connect suffix link to the current split node from last internal node created
+                 }
+
+                 lastnode = splitnot; // update last created internal node to current split node
+                 remaining--;         // decrement suffix count remaining
+
+                 if (activepoint->activeNode == root)
+                 {                                        // if active node is root
+                     activepoint->activeEdge ++;   // increment active edge
+                     activepoint->activelength--; // decrement active length
+                 }
+                 else {
+                     if (activepoint->activeNode->suffixLink != nullptr) activepoint->activeNode = activepoint->activeNode->suffixLink;
+                     else activepoint->activeNode = root;
+                 }
+             }
+         }
+     }
+ }
 
 Suffix::Node* Suffix::getNode(int index)
 {
