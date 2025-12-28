@@ -35,10 +35,4 @@ namespace DNA {
         Suffix tree;
         return tree.findLargestCommonRegion(s1, s2);
     }
-
-
-    st
-
-
-
 }

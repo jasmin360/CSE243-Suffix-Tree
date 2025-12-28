@@ -341,37 +341,3 @@ void MainFrame::findCommonRegion(wxCommandEvent& event)
             std::to_string(commonRegion.length()) + "):\n" + commonRegion);
     }
 }
-void findMaxRepetition(Node* node, int x, int& count, int currentLength, string& res) {
-
-    if (!node || x <= 0 || text.length() < x) return;//if node is null or x is non-positive, return
-
-
-    for (int i = 0; i < 6; i++) { // for all possible children
-        Node* child = node->child[i]; // get child node
-        if (!child) { // if child node is null, continue
-            continue;
-        }
-
-        int edgeLen = child->end->end - child->start + 1; //length of current edge
-        int newLength = currentLength + edgeLen;// new length after including this edge
-
-        if (currentLength < x && newLength >= x) {// if path length less than x
-            if (child->leafCount > count) {
-
-                count = child->leafCount;// update max count
-                Node* temp = child;
-                while (temp->index == -1) {
-                    for (int j = 0; j < 6; j++) {
-                        if (temp->child[j]) {
-                            temp = temp->child[j];
-                            break;
-                        }
-                    }
-                }
-                res = text.substr(temp->index, x);// extract substring of length x
-
-            }
-        }
-        findMaxRepetition(child, x, count, newLength, res); //recursive depth first search  
-    }
-}
