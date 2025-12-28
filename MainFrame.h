@@ -1,5 +1,6 @@
 #pragma once
 #include <wx/wx.h>
+#include <wx/slider.h>
 #include <string>
 
 class MainFrame : public wxFrame
@@ -8,24 +9,24 @@ public:
     MainFrame(const wxString& title);
 
 private:
-    // GUI Elements
-    wxStaticText* lblStatus;     // Shows "File Loaded: filename.txt"
-    wxTextCtrl* output;          // Results box
-    wxTextCtrl* searchInput;     // Pattern input
+    // File loading handlers
+    void OnLoadFileA(wxCommandEvent& event);
+    void OnLoadFileB(wxCommandEvent& event);
 
-    // New Slider Elements
-    wxSlider* sliderUnique;      // The slider to pick 'X'
-    wxStaticText* lblSliderVal;  // Label to show current slider value (e.g. "Len: 10")
-
-    // Data Storage
-    std::string loadedSequence;  // Stores the DNA from the file
-
-    // Functions
-    void OnLoadFile(wxCommandEvent& event);
+    // Function handlers
     void SearchPattern(wxCommandEvent& event);
+    void UniqueRegions(wxCommandEvent& event);
+	void findCommonRegion(wxCommandEvent& event);
 
-    // Button handlers
-    void CommonRegion(wxCommandEvent& event) {}
-    void FindRepeats(wxCommandEvent& event) {}
-    void UniqueRegions(wxCommandEvent& event); // Logic is now in .cpp
+    // UI Components
+    wxStaticText* lblStatusA;      // Status label for file A
+    wxStaticText* lblStatusB;      // Status label for file B
+    wxStaticText* lblSliderVal;    // Slider value label
+    wxTextCtrl* searchInput;       // Search input field
+    wxTextCtrl* output;            // Output text area
+    wxSlider* sliderUnique;        // Slider for unique region length
+
+    // Data
+    std::string loadedSequenceA;   // DNA sequence A
+    std::string loadedSequenceB;   // DNA sequence B
 };
