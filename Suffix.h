@@ -32,13 +32,18 @@ public:
     int* searchPattern(const string &pattern, int& count);
     Node* getNode(int index);
     int getIndex(char c);
-    void buildGST(const char* s1, const char* s2);
+    //the new lcs with string implemetation
+
+    void buildGST(const string concatedText);
     int edgeLength(Node* node);
     bool isLeaf(Node* node);
     int countLeaves(Node* node);
     string findLargestCommonRegion(const char* s1, const char* s2);
     void findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int &index);
-    void dfs_LCS(Node* node, int s1Length, char* tempPath, int pathLen, bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, char* LCS);
+    void dfs_LCS(Node* node, int s1Length, string& concatenatedText, int pathLen, 
+             bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
+             string& LCS, string currentPath);
+    string findLargestCommonRegion(const string s1, const string s2);
     class ActivePoint{
     public:
         ActivePoint(Node* node);

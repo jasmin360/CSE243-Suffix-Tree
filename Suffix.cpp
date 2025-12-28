@@ -220,43 +220,13 @@ int Suffix::getIndex(char c)
     return -1;
 }
 
+//the new lcs with string implemetation
+    void Suffix::buildGST(const string concatedText) {
+        this->text = concatedText; // concated text
 
-    
-    void Suffix::buildGST(const char* s1, const char* s2) {
-        this->text = ""; // text before concat
-
-        // Append s1
-        for (int i = 0; s1[i] != '\0'; i++){
-            this->text += s1[i];
-        }
-        int s1Length = this->text.length(); //store length of s1 for later use
-        this->text += '$';
-
-        // Append s2
-        for (int i = 0; s2[i] != '\0'; i++){
-            this->text += s2[i];
-        }   
-        this->text += '#';
-
-        // textexample = "s1$s2#"
-        int pos = 0;
-        // inserting chars before the '$'
-        this->currentStringID = 0;
-        while (this->text[pos] != '$') {
-            this->startPhase(pos);
-            pos++;
-        }
-        this->startPhase(pos); // insert '$'
-        pos++;
-        // inserting chars before the '#'
-        this->currentStringID = 1;
-        while (this->text[pos] != '#') {
-            this->startPhase(pos);
-            pos++;
-        }
-        this->startPhase(pos); // insert '#'
-
-        
+        for (int i = 0; i < (int)text.length(); i++) {  //insert the whole text into suffix tree
+            startPhase(i);
+        } 
     }
 
     //THE EDITS THAT I HAVE MADE ARE BELOWWWWWWWWWWWWWWWWWW
@@ -273,126 +243,92 @@ int Suffix::getIndex(char c)
     return (node->index != -1); // checks if the index is not -1 to determine if it's a leaf
     }
 
-    void Suffix::dfs_LCS(Node* node, int s1Length, char* tempPath, int pathLen, bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, char* LCS){
-        /*Guide for variables
-        s1Length= length of s1 without the $
-        tempPath= contains temporary path for characters during the dfs
-        pathLen= length of current path
-        hasSuffixFromS1= boolean to check if suffix from s1 is found in current path
-        hasSuffixFromS2= boolean to check if suffix from s2 is found in current path
-        maxLength= length of longest common suffix found so far
-        LCS= character array to store longest common suffix found so far
-        */
-
-        if (node == nullptr) { //saftey ] stops recursion
+    void Suffix::dfs_LCS(Node* node, int s1Length, string& concatenatedText, int pathLen, 
+             bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
+             string& LCS, string currentPath) {
+    
+    if (node == nullptr) {
+        hasSuffixFromS1 = false;
+        hasSuffixFromS2 = false;
+        return;
+    }
+    
+    // If this is a leaf node
+    if (isLeaf(node)) {
+        if (node->index < s1Length) {
+            hasSuffixFromS1 = true;
+            hasSuffixFromS2 = false;
+        } else if (node->index > s1Length) {
+            hasSuffixFromS1 = false;
+            hasSuffixFromS2 = true;
+        } else {
+            // Suffix starts at separator '$'
             hasSuffixFromS1 = false;
             hasSuffixFromS2 = false;
-            return;
         }
-
-        if(isLeaf(node)){ // checks if the node is leaf using method isLeaf
-            int suffixStart = node -> index; // determine suffix start possition using index
-            if(suffixStart < s1Length){ // if suffix start < length of s1 it belongs to s1
-                hasSuffixFromS1 = true;
-                hasSuffixFromS2 = false;
-            }
-            else if (suffixStart > s1Length) { // else it belongs to s2
-                hasSuffixFromS1 = false;
-                hasSuffixFromS2 = true;
-            }
-            else{ // it means its exactly a the $ so we ignore
-                hasSuffixFromS1 = false;
-                hasSuffixFromS2 = false;
-            }
-            return;
-        }
-
-        bool foundinS1 = false;  //it will turn true if any child subtree has suffix from s1
-        bool foundinS2 = false; //it will turn true if any child subtree has suffix from s2
-
-        // loop over all the possible children (6 for A,C,G,T,$,#)
-        for(int i=0; i<6; i++){
-            Node* childPointer = node->child[i]; // get the child pointer
-            
-            if(childPointer == nullptr){ // if child is null continue to next child
-                continue;
-            }
-
-            int len = edgeLength(childPointer); // get edge length using method edgeLength
-
-            int oldPathLen = pathLen; // store old path length
-
-            for(int m=0; m<len; m++){ // walk through edge and add characters to tempPath
-                char c = text[childPointer->start + m]; 
-
-                if(c== '$' || c=='#'){ // ignore special characters
-                    break;
-                }
-                tempPath[pathLen] = c; // add character to tempPath
-                pathLen++;  //increase path length
-            }
-
-            bool childHasSuffixFromS1 = false; // to check if child subtree has suffix from s1
-            bool childHasSuffixFromS2 = false; // to check if child subtree has suffix from s2
-
-            dfs_LCS(childPointer, s1Length, tempPath, pathLen, childHasSuffixFromS1, childHasSuffixFromS2, maxLength, LCS); // recursive DFS call
-
-            /*bAsically if any of the children contains a suffix from s1 or s2 this will mean that that this node has suffix from s1 or s2. 
-            A node represents a substring that appears in string 2 when at least one of its children represents a suffix appearing in string 2 for example
-            so using this same example if one child has string 2, the parent as well has string 2
-            if we think about it conceptually the parent inherits the presence of a string from its children and one child is enough*/
-
-            if(childHasSuffixFromS1){
-                foundinS1 = true; //if any child has suffix from s1 mark foundinS1 true
-            }
-            if(childHasSuffixFromS2){
-                foundinS2 = true; //if any child has suffix from s2 mark foundinS2 true
-            }
-
-            // if the current node subtree has the suffixes from both the strings then its common
-            if(foundinS1 && foundinS2){ // common substring condition
-                    // check if the common substring is longer than the maxLength found so far
-                    if(pathLen > maxLength){
-                        maxLength = pathLen;
-                        for(int l=0; l<pathLen; l++){
-                            LCS[l] = tempPath[l]; // update LCS with the current path
-                        }
-                        LCS[pathLen] = '\0'; // null terminate the LCS string
-                    }
-            }
-
-            pathLen = oldPathLen; // backtrack path length to old value
-        }
-
-            hasSuffixFromS1 = foundinS1; // update hasSuffixFromS1 for parent node
-            hasSuffixFromS2 = foundinS2; // update hasSuffixFromS2 for parent node
-    }    
-
-    string Suffix::findLargestCommonRegion(const char* s1, const char* s2){
-
-        this->buildGST(s1, s2);
-        int s1Length = strlen(s1); //length of s1 for later use
-        // If tree not built or text empty
-        if (this->root == nullptr || this->text.empty()) {
-            return ""; // empty result
-        }
-
-        char* tempPath = new char[this->text.size() + 1]; // temporary array to store LCS
-        char* LCS = new char[this->text.size() + 1]; // array to store final LCS
-        LCS[0] = '\0'; // start empty
-
-        int maxLength = 0; // to store maximum length of common substring
-        bool hasSuffixFromS1 = false; // to check if suffix from s1 is found
-        bool hasSuffixFromS2 = false; // to check if suffix from s2 is
-
-        dfs_LCS(root, s1Length, tempPath, 0, hasSuffixFromS1, hasSuffixFromS2, maxLength, LCS);
-
-        string result = string(LCS);
-        delete[] tempPath;
-        delete[] LCS;
-
-        return result;
+        return;
     }
+    
+    bool foundinS1 = false;
+    bool foundinS2 = false;
+    
+    // Process all children
+    for (int i = 0; i < 6; i++) {
+        if (node->child[i] == nullptr) {
+            continue;
+        }
+        
+        Node* child = node->child[i];
+        int edgeLen = edgeLength(child);
+        
+        // Build the edge string
+        string edgeString = concatenatedText.substr(child->start, edgeLen);
+        string childPath = currentPath + edgeString;
+        
+        bool childHasSuffixFromS1 = false;
+        bool childHasSuffixFromS2 = false;
+        
+        dfs_LCS(child, s1Length, concatenatedText, pathLen + edgeLen, 
+                childHasSuffixFromS1, childHasSuffixFromS2, maxLength, LCS, childPath);
+        
+        if (childHasSuffixFromS1) {
+            foundinS1 = true;
+        }
+        if (childHasSuffixFromS2) {
+            foundinS2 = true;
+        }
+    }
+    
+    // AFTER processing all children, check if this node represents a common substring
+    if (foundinS1 && foundinS2) {
+        if (pathLen > maxLength) {
+            maxLength = pathLen;
+            LCS = currentPath;
+        }
+    }
+    
+    hasSuffixFromS1 = foundinS1;
+    hasSuffixFromS2 = foundinS2;
+}
+
+string Suffix::findLargestCommonRegion(const string s1, const string s2) {
+    text = s1 + '$' + s2 + '#';
+    buildGST(text);
+    
+    if (root == nullptr || text.empty()) {
+        return "";
+    }
+    
+    string LCS = "";
+    int maxLength = 0;
+    bool hasSuffixFromS1 = false;
+    bool hasSuffixFromS2 = false;
+    
+    dfs_LCS(root, s1.length(), text, 0, hasSuffixFromS1, hasSuffixFromS2, 
+            maxLength, LCS, "");
+    
+    return LCS;
+}
 
 int* Suffix::searchPattern(const std::string& pattern, int& count)
 {
