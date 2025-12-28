@@ -25,6 +25,8 @@ private:
     wxTextCtrl* searchInput;       // Search input field
     wxTextCtrl* output;            // Output text area
     wxSlider* sliderUnique;        // Slider for unique region length
+    wxRadioButton* radioSeqA;
+    wxRadioButton* radioSeqB;
 
     // Data
     std::string loadedSequenceA;   // DNA sequence A

@@ -352,7 +352,7 @@ int* Suffix::searchPattern(const std::string& pattern, int& count)
         current = next;
     }
 
-    int capacity = 10;
+    int capacity = 200000;
     int* result = new int[capacity];
     count = 0;
 

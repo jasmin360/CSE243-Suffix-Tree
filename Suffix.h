@@ -44,6 +44,7 @@ public:
              bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
              string& LCS, string currentPath);
     string findLargestCommonRegion(const string s1, const string s2);
+    void findUniqueRegion(Node* node, int x, int currentLength, string* arr, int& index)
     class ActivePoint{
     public:
         ActivePoint(Node* node);

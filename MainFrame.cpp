@@ -15,7 +15,7 @@ MainFrame::MainFrame(const wxString& title)
     wxColour lightBg("#485460");
     wxColour textWhite(*wxWHITE);
     wxColour accentGreen("#05c46b");
-    wxColour accentBlue("#0fbcf9");  // Different color for seqB
+    wxColour accentBlue("#0fbcf9");
 
     // Main Panel
     wxPanel* panel = new wxPanel(this);
@@ -60,6 +60,20 @@ MainFrame::MainFrame(const wxString& title)
 
     btnLoadFileB->Bind(wxEVT_BUTTON, &MainFrame::OnLoadFileB, this);
 
+    // --- SEQUENCE SELECTOR (Radio Buttons) ---
+    wxStaticBoxSizer* seqSelectGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Target Sequence");
+    seqSelectGroup->GetStaticBox()->SetForegroundColour(textWhite);
+
+    // Radio buttons for choosing sequence
+    radioSeqA = new wxRadioButton(panel, wxID_ANY, "Sequence A", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    radioSeqB = new wxRadioButton(panel, wxID_ANY, "Sequence B");
+    radioSeqA->SetValue(true); // Default to Seq A
+    radioSeqA->SetForegroundColour(textWhite);
+    radioSeqB->SetForegroundColour(textWhite);
+
+    seqSelectGroup->Add(radioSeqA, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+    seqSelectGroup->Add(radioSeqB, 0, wxALIGN_CENTER_VERTICAL);
+
     // --- SEARCH INPUT SECTION ---
     wxBoxSizer* searchSizer = new wxBoxSizer(wxHORIZONTAL);
     searchInput = new wxTextCtrl(panel, wxID_ANY, "Enter pattern (e.g. TG)...");
@@ -72,13 +86,11 @@ MainFrame::MainFrame(const wxString& title)
     searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10);
     searchSizer->Add(btnSearch, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- GENERAL TOOLS (Common / Repeats) ---
+    // --- Common Region Section ---
     wxBoxSizer* toolsSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region");
-    wxButton* btnRepeat = new wxButton(panel, wxID_ANY, "Find Repeats");
-
-    toolsSizer->Add(btnCommon, 1, wxRIGHT, 5);
-    toolsSizer->Add(btnRepeat, 1, wxRIGHT, 5);
+    btnCommon->Bind(wxEVT_BUTTON, &MainFrame::findCommonRegion, this);
+    toolsSizer->Add(btnCommon, 0, wxALIGN_CENTER_VERTICAL);
 
     // --- UNIQUE REGION SECTION (With Slider) ---
     wxStaticBoxSizer* uniqueGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Find Unique Region");
@@ -122,6 +134,7 @@ MainFrame::MainFrame(const wxString& title)
     wxStaticLine* line1 = new wxStaticLine(panel, wxID_ANY);
     vbox->Add(line1, 0, wxEXPAND | wxALL, 10);
 
+    vbox->Add(seqSelectGroup, 0, wxEXPAND | wxALL, 10);
     vbox->Add(searchSizer, 0, wxEXPAND | wxALL, 10);
     vbox->Add(toolsSizer, 0, wxEXPAND | wxALL, 10);
     vbox->Add(uniqueGroup, 0, wxEXPAND | wxALL, 10);
@@ -220,12 +233,17 @@ void MainFrame::OnLoadFileB(wxCommandEvent& event)
     }
 }
 
-// --- SEARCH FUNCTION (Uses Sequence A) ---
+// --- SEARCH FUNCTION (Uses Selected Sequence) ---
 void MainFrame::SearchPattern(wxCommandEvent& event)
 {
-    if (loadedSequenceA.empty())
+    // Determine which sequence to use based on radio button selection
+    bool useSeqA = radioSeqA->GetValue();
+    std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
+    std::string seqName = useSeqA ? "A" : "B";
+
+    if (selectedSequence.empty())
     {
-        output->SetValue("Error: No DNA file A loaded. Please load file A first.");
+        output->SetValue("Error: No DNA file " + seqName + " loaded. Please load file " + seqName + " first.");
         return;
     }
 
@@ -245,16 +263,16 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
     }
 
     int count = 0;
-    int* indices = DNA::SearchPattern(loadedSequenceA, pattern, count);
+    int* indices = DNA::SearchPattern(selectedSequence, pattern, count);
 
     if (indices == nullptr || count == 0)
     {
-        output->SetValue("Pattern '" + pattern + "' NOT found.");
+        output->SetValue("Pattern '" + pattern + "' NOT found in Sequence " + seqName + ".");
     }
     else
     {
         wxString resultMsg;
-        resultMsg << "Pattern '" << pattern << "' found " << count << " times at indices:\n";
+        resultMsg << "Pattern '" << pattern << "' found " << count << " times in Sequence " << seqName << " at indices:\n";
         int limit = (count > 5000) ? 5000 : count;
         for (int i = 0; i < limit; i++)
         {
@@ -270,17 +288,22 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
     }
 }
 
-// --- UNIQUE REGIONS FUNCTION (Uses Sequence A) ---
+// --- UNIQUE REGIONS FUNCTION (Uses Selected Sequence) ---
 void MainFrame::UniqueRegions(wxCommandEvent& event)
 {
-    if (loadedSequenceA.empty())
+    // Determine which sequence to use based on radio button selection
+    bool useSeqA = radioSeqA->GetValue();
+    std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
+    std::string seqName = useSeqA ? "A" : "B";
+
+    if (selectedSequence.empty())
     {
-        output->SetValue("Error: No DNA file A loaded. Please load file A first.");
+        output->SetValue("Error: No DNA file " + seqName + " loaded. Please load file " + seqName + " first.");
         return;
     }
 
     int x = sliderUnique->GetValue();
-    std::string* res = DNA::findUniqueRegion(loadedSequenceA, x);
+    std::string* res = DNA::findUniqueRegion(selectedSequence, x);
 
     if (!res)
     {
@@ -290,11 +313,11 @@ void MainFrame::UniqueRegions(wxCommandEvent& event)
 
     if (res[0].empty())
     {
-        output->SetValue("No unique region of length " + std::to_string(x) + " found.");
+        output->SetValue("No unique region of length " + std::to_string(x) + " found in Sequence " + seqName + ".");
     }
     else
     {
-        output->SetValue("Found Unique Region (Length " + std::to_string(x) + "):\n" + res[0]);
+        output->SetValue("Found Unique Region in Sequence " + seqName + " (Length " + std::to_string(x) + "):\n" + res[0]);
     }
 
     delete[] res;
@@ -307,13 +330,48 @@ void MainFrame::findCommonRegion(wxCommandEvent& event)
         output->SetValue("Error: Both DNA files must be loaded to find common regions.");
         return;
     }
-    std::string commonRegion = suffixTree.findLargestCommonRegion(loadedSequenceA.c_str(), loadedSequenceB.c_str());
+    std::string commonRegion = DNA::findLargestCommonRegion(loadedSequenceA, loadedSequenceB);
     if (commonRegion.empty())
     {
         output->SetValue("No common region found between the two sequences.");
     }
     else
     {
-        output->SetValue("Found Common Region:\n" + commonRegion);
+        output->SetValue("Largest Common Region Found (Length " +
+            std::to_string(commonRegion.length()) + "):\n" + commonRegion);
+    }
+}
+void findMaxRepetition(Node* node, int x, int& count, int currentLength, string& res) {
+
+    if (!node || x <= 0 || text.length() < x) return;//if node is null or x is non-positive, return
+
+
+    for (int i = 0; i < 6; i++) { // for all possible children
+        Node* child = node->child[i]; // get child node
+        if (!child) { // if child node is null, continue
+            continue;
+        }
+
+        int edgeLen = child->end->end - child->start + 1; //length of current edge
+        int newLength = currentLength + edgeLen;// new length after including this edge
+
+        if (currentLength < x && newLength >= x) {// if path length less than x
+            if (child->leafCount > count) {
+
+                count = child->leafCount;// update max count
+                Node* temp = child;
+                while (temp->index == -1) {
+                    for (int j = 0; j < 6; j++) {
+                        if (temp->child[j]) {
+                            temp = temp->child[j];
+                            break;
+                        }
+                    }
+                }
+                res = text.substr(temp->index, x);// extract substring of length x
+
+            }
+        }
+        findMaxRepetition(child, x, count, newLength, res); //recursive depth first search  
     }
 }
