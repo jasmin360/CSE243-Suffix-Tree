@@ -438,8 +438,12 @@ void Suffix::findUniqueRegion(Node* node, int x, int currentLength, string* arr,
 
             //index 3 condition is to store at most 3 results
 
+            string test = currentPath.substr(0, x); //candidate substring for unique region
 
-            arr[index++] = currentPath.substr(0, x); // store the first x characters of the path
+            if (test.find('$') == string::npos) // only allow substrings that DO NOT have a $ to be outputed
+            {
+                arr[index++] = test;
+            }
         }
 
         findUniqueRegion(child, x, newLength, arr, index, currentPath);
