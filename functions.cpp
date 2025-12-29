@@ -35,4 +35,15 @@ namespace DNA {
         Suffix tree;
         return tree.findLargestCommonRegion(s1, s2);
     }
+
+    std::string DNA :: findMaxRepetition(const std::string& sequence, int x) {
+        Suffix tree;
+        std::string seq = sequence + "$";
+        tree.makeSuffixTree(seq);
+        tree.countLeaves(tree.root);
+        std::string res = "";
+        int count = 0;
+        tree.findMaxRepetition(tree.root, x, count, 0, res);
+        return res;
+	}
 }

@@ -12,5 +12,7 @@ namespace DNA {
 
     std::string findLargestCommonRegion(const std::string& s1,const std::string& s2);
 
+	std::string findMaxRepetition(const std::string& sequence, int x);
+
 
 }

@@ -114,6 +114,12 @@ MainFrame::MainFrame(const wxString& title)
     uniqueGroup->Add(sliderUnique, 1, wxEXPAND | wxRIGHT, 10);
     uniqueGroup->Add(btnUnique, 0, wxALIGN_CENTER_VERTICAL);
 
+	// --- MAX REPETITION SECTION ---
+	wxButton* btnMaxRep = new wxButton(panel, wxID_ANY, "Max Repetition");
+	btnMaxRep->Bind(wxEVT_BUTTON, &MainFrame::MaxRepetition, this);
+	toolsSizer->Add(btnMaxRep, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
+
+
     // --- OUTPUT SECTION ---
     wxStaticText* labelRes = new wxStaticText(panel, wxID_ANY, "Results / Status:");
     labelRes->SetForegroundColour(textWhite);
@@ -339,5 +345,28 @@ void MainFrame::findCommonRegion(wxCommandEvent& event)
     {
         output->SetValue("Largest Common Region Found (Length " +
             std::to_string(commonRegion.length()) + "):\n" + commonRegion);
+    }
+}
+
+void MainFrame::MaxRepetition(wxCommandEvent& event)
+{
+    // Determine which sequence to use based on radio button selection
+    bool useSeqA = radioSeqA->GetValue();
+    std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
+    std::string seqName = useSeqA ? "A" : "B";
+    if (selectedSequence.empty())
+    {
+        output->SetValue("Error: No DNA file " + seqName + " loaded. Please load file " + seqName + " first.");
+        return;
+    }
+    int x = sliderUnique->GetValue();
+    std::string res = DNA::findMaxRepetition(selectedSequence, x);
+    if (res.empty())
+    {
+        output->SetValue("No substring of length " + std::to_string(x) + " found that repeats in Sequence " + seqName + ".");
+    }
+    else
+    {
+        output->SetValue("Max Repeating Substring of Length " + std::to_string(x) + " in Sequence " + seqName + ":\n" + res);
     }
 }

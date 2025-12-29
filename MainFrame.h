@@ -17,6 +17,7 @@ private:
     void SearchPattern(wxCommandEvent& event);
     void UniqueRegions(wxCommandEvent& event);
 	void findCommonRegion(wxCommandEvent& event);
+	void MaxRepetition(wxCommandEvent& event);
 
     // UI Components
     wxStaticText* lblStatusA;      // Status label for file A
