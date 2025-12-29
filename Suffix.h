@@ -2,6 +2,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <string>
 using namespace std;
 class Suffix{
 public:
@@ -14,7 +15,7 @@ public:
         ~End();
         int end;
     };
-    End* globalEnd;
+
     class Node{
     public:
         Node(int i, End* e);
@@ -32,19 +33,20 @@ public:
     int* searchPattern(const string &pattern, int& count);
     Node* getNode(int index);
     int getIndex(char c);
-    //the new lcs with string implemetation
-
     void buildGST(const string concatedText);
     int edgeLength(Node* node);
     bool isLeaf(Node* node);
     int countLeaves(Node* node);
-    string findLargestCommonRegion(const char* s1, const char* s2);
+    string findLargestCommonRegion(const string s1, const string s2);
+    void findUniqueRegion(Node* node, int x, int currentLength,
+    string* arr, int& index, string& currentPath);
     void dfs_LCS(Node* node, int s1Length, string& concatenatedText, int pathLen, 
              bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
              string& LCS, string currentPath);
-    string findLargestCommonRegion(const string s1, const string s2);
-    void findUniqueRegion(Node* node, int x, int currentLength, string* arr, int& index);
-    void findMaxRepetition(Node* node, int x, int& count, int currentLength, string& res);
+    void collectLeafIndices(Node* node, int*& arr, int& count, int& capacity);
+    void findMaxRepetition(Node* node, int x, int& count,
+    int currentLength, string& currentPath, string& res);
+
     class ActivePoint{
     public:
         ActivePoint(Node* node);
@@ -57,13 +59,7 @@ public:
     string text;
     ActivePoint* activepoint; 
     int remaining;
+    End* globalEnd;
 	int currentStringID;
-    void insert(int index);
-    void extend(int index);
-
-    private:
-		void collectLeafIndices(Node* node, int*& arr, int& count, int& capacity);
-
-    
 
 };

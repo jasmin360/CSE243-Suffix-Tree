@@ -1,6 +1,6 @@
 #include <iostream>
 #include "Suffix.h"
-#include <vector>
+#include <string>
 using namespace std;
 
 // --- Suffix Constructor ---
@@ -406,73 +406,86 @@ int Suffix::countLeaves(Node* node)
     return sum;
 }
 
-void Suffix::findUniqueRegion(Node* node, int x ,int currentLength, string* arr, int &index)
-{ 
-    if (!node)
-    { // if node is null
+void Suffix::findUniqueRegion(Node* node, int x, int currentLength, string* arr, int& index, string& currentPath)
+{
+    if (!node || index >= 3) //if node is null or the ouput is full 
         return;
-    }
-    if(index>=3){
-        return;
-    }
 
-    for (int i = 0; i < 6; i++)
-    { // for all possible children
+    for (int i = 0; i < 6; i++) // for all possible children
+    {
         Node* child = node->child[i]; // get child node
-        if (!child)
-        { // if child node is null, continue
+        if (!child) // if child node is null, continue to next child
             continue;
+
+        int edgeLen = child->end->end - child->start + 1; //length of current edge (from node to child)
+        int newLength = currentLength + edgeLen; // new length after including this edge
+
+        long long oldSize = currentPath.size(); // the size of currentpath is stored before appending the new edge labels
+        //so it can be restored when recursing
+
+        currentPath.append(text, child->start, edgeLen); //appends edge label of current child node (path built incrementally)
+
+        if (child->leafCount == 1 &&
+            currentLength < x && newLength >= x &&
+            index < 3) // if current length is less than x and new length is greater than or equal to x and the output array index is less than 3
+        {
+            //when leaf count is 1, the substring occurs exactly once and therefore is unique
+            //current length and new length conditions just verify that length x is crossed
+
+            // to capture substrings of EXACT length x, which happens when BOTH
+            // before adding this edge, the path was SHORTER than x
+            // after adding this edge, the path becomes >= x
+
+            //index 3 condition is to store at most 3 results
+
+
+            arr[index++] = currentPath.substr(0, x); // store the first x characters of the path
         }
 
-        int edgeLen = child->end->end - child->start + 1; // length of current edge
-        int newLength = currentLength + edgeLen;          // new length after including this edge
+        findUniqueRegion(child, x, newLength, arr, index, currentPath);
 
-        if (child->leafCount == 1)
-        { // if current subtree occurs exactly once (unique region)
-            if (currentLength < x && newLength >= x)
-            { // if current length is less than x and new length is greater than or equal to x
-                // extract substring of length x
-                int startIndex = child->end->end - (newLength - x) + 1;
-                arr[index] = text.substr(startIndex, x);
-                index++;
-            }
-        }
-
-        findUniqueRegion(child, newLength, x, arr, index); // recursive depth first search
+        currentPath.resize(oldSize); //restores path to previous size
     }
 }
 
-void Suffix::findMaxRepetition(Node* node, int x, int& count, int currentLength, string& res) {
+void Suffix::findMaxRepetition(Node* node, int x, int& count,
+    int currentLength, string& currentPath, string& res)
+{
+    if (!node) //if node is null, return
 
-    if (!node || x <= 0 || text.length() < x) return;//if node is null or x is non-positive, return
+        return;
 
-
-    for (int i = 0; i < 6; i++) { // for all possible children
+    for (int i = 0; i < 6; i++) // for all possible children
+    {
         Node* child = node->child[i]; // get child node
-        if (!child) { // if child node is null, continue
+        if (!child) // if child node is null, continue to next child
             continue;
-        }
 
-        int edgeLen = child->end->end - child->start + 1; //length of current edge
-        int newLength = currentLength + edgeLen;// new length after including this edge
+        int edgeLen = child->end->end - child->start + 1; //length of current edge (from node to child)
+        int newLength = currentLength + edgeLen; // new length after including this edge
 
-        if (currentLength < x && newLength >= x) {// if path length less than x
-            if (child->leafCount > count) {
+        long long oldSize = currentPath.size(); // the size of currentpath is stored before appending the new edge labels
+        //so it can be restored when recursing
 
-                count = child->leafCount;// update max count
-                Node* temp = child;
-                while (temp->index == -1) {
-                    for (int j = 0; j < 6; j++) {
-                        if (temp->child[j]) {
-                            temp = temp->child[j];
-                            break;
-                        }
-                    }
-                }
-                res = text.substr(temp->index, x);// extract substring of length x
+        currentPath.append(text, child->start, edgeLen); //appends edge label of current child node (path built incrementally)
 
+
+        if (currentLength < x && newLength >= x) //current length and new length conditions just verify that length x is crossed
+        {
+            // to capture substrings of EXACT length x, which happens when BOTH
+            // before adding this edge, the path was SHORTER than x
+            // after adding this edge, the path becomes >= x
+
+            if (child->leafCount > count)
+            {
+                // since leafCount is the number of suffixes that share this path
+                // the substring stored is what has the largest leaf count of all
+                count = child->leafCount;
+                res = currentPath.substr(0, x);
             }
         }
-        findMaxRepetition(child, x, count, newLength, res); //recursive depth first search  
+
+        findMaxRepetition(child, x, count, newLength, currentPath, res);
+        currentPath.resize(oldSize);
     }
 }
