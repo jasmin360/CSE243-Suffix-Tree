@@ -331,15 +331,15 @@ string Suffix::findLargestCommonRegion(const string s1, const string s2) {
 }
 
 int* Suffix::searchPattern(const std::string& pattern, int& count)
-{
-    Node* current = root;
-    int i = 0;
+{ // function to search for pattern in a DNA sequence
+	Node* current = root; // start at root
+	int i = 0; // i is the index of pattern being matched
 
-    while (i < pattern.length())
+	while (i < pattern.length()) // while there are still characters left in pattern to match
     {
-        int idx = getIndex(pattern[i]);
-        if (idx == -1 || current->child[idx] == nullptr)
-            return nullptr;
+		int idx = getIndex(pattern[i]); // get index of current character in pattern
+		if (idx == -1 || current->child[idx] == nullptr) // if index is at leaf node or character not found 
+			return nullptr; // pattern not found
 
         Node* next = current->child[idx];
         int edgeLen = next->end->end - next->start + 1;
@@ -361,13 +361,13 @@ int* Suffix::searchPattern(const std::string& pattern, int& count)
 }
 
 void Suffix::collectLeafIndices(Node* node, int*& arr, int& count, int& capacity)
-{
-    if (!node)
+{// Function to collect leaf indices under a given node
+	if (!node) // if node is null, do nothing
         return;
 
-    if (node->index != -1)
+	if (node->index != -1) // if node is a leaf node
     {
-        if (count == capacity)
+		if (count == capacity) // resize array if capacity is reached
         {
             capacity *= 2;
             int* newArr = new int[capacity];
@@ -376,13 +376,13 @@ void Suffix::collectLeafIndices(Node* node, int*& arr, int& count, int& capacity
             delete[] arr;
             arr = newArr;
         }
-        arr[count++] = node->index;
+		arr[count++] = node->index; // add leaf index to result array
         return;
     }
 
-    for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 5; i++) // for all possible children
     {
-        collectLeafIndices(node->child[i], arr, count, capacity);
+		collectLeafIndices(node->child[i], arr, count, capacity); // recursively collect leaf indices from children
     }
 }
 
