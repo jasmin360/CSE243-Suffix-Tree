@@ -88,7 +88,7 @@ void Suffix::makeSuffixTree(string str)
              {
                  // RULE 2 EXTENSION
                  Node* node = new Node(i, globalEnd);                                          // create new leaf node
-                 node->index = i - remaining + 1;                                                // set index to current string ID
+                 node->index = i - remaining + 1;                                                // set index to the suffix starting index
                  activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
                  remaining--;                                                                  // decrement remaining suffix count
 
@@ -100,15 +100,15 @@ void Suffix::makeSuffixTree(string str)
                  if (activepoint->activeNode != root)
 
                  { // if active node is not root
-                     if (activepoint->activeNode->suffixLink != nullptr) {  //uiug
-                         activepoint->activeNode = activepoint->activeNode->suffixLink;
+                     if (activepoint->activeNode->suffixLink != nullptr) {  // does active node have a suffix link?
+                         activepoint->activeNode = activepoint->activeNode->suffixLink; // set active node to its suffix link
                      }
                      else activepoint->activeNode = root;
-			activepoint->activeEdge = i - remaining + 1;
+			        activepoint->activeEdge++; // increment active edge
                      // follow suffix link, where active node becomes the suffix linked node of current node
                  }
                  else {
-                     activepoint->activeEdge = i - remaining + 1; // set active edge to next suffix's first character
+                     activepoint->activeEdge++; // set active edge to next suffix's first character
                      if (activepoint->activelength > 0) activepoint->activelength--;                  // decrement active length
                  }
              }
