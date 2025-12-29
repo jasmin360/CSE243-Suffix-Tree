@@ -8,7 +8,7 @@
 #include <wx/slider.h>
 
 MainFrame::MainFrame(const wxString& title)
-    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(900, 750))
+    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(900, 800))
 {
     // --- THEME COLORS ---
     wxColour darkBg("#1e272e");
@@ -60,19 +60,20 @@ MainFrame::MainFrame(const wxString& title)
 
     btnLoadFileB->Bind(wxEVT_BUTTON, &MainFrame::OnLoadFileB, this);
 
-    // --- SEQUENCE SELECTOR (Radio Buttons) ---
-    wxStaticBoxSizer* seqSelectGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Target Sequence");
-    seqSelectGroup->GetStaticBox()->SetForegroundColour(textWhite);
+    wxStaticLine* line1 = new wxStaticLine(panel, wxID_ANY);
 
-    // Radio buttons for choosing sequence
+    // --- RADIO BUTTON SECTION (Target Sequence) ---
+    wxStaticBoxSizer* radioGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Target Sequence");
+    radioGroup->GetStaticBox()->SetForegroundColour(textWhite);
+
     radioSeqA = new wxRadioButton(panel, wxID_ANY, "Sequence A", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     radioSeqB = new wxRadioButton(panel, wxID_ANY, "Sequence B");
-    radioSeqA->SetValue(true); // Default to Seq A
+    radioSeqA->SetValue(true);
     radioSeqA->SetForegroundColour(textWhite);
     radioSeqB->SetForegroundColour(textWhite);
 
-    seqSelectGroup->Add(radioSeqA, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
-    seqSelectGroup->Add(radioSeqB, 0, wxALIGN_CENTER_VERTICAL);
+    radioGroup->Add(radioSeqA, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+    radioGroup->Add(radioSeqB, 0, wxALIGN_CENTER_VERTICAL);
 
     // --- SEARCH INPUT SECTION ---
     wxBoxSizer* searchSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -86,39 +87,57 @@ MainFrame::MainFrame(const wxString& title)
     searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10);
     searchSizer->Add(btnSearch, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- Common Region Section ---
-    wxBoxSizer* toolsSizer = new wxBoxSizer(wxHORIZONTAL);
-    wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region");
-    btnCommon->Bind(wxEVT_BUTTON, &MainFrame::findCommonRegion, this);
-    toolsSizer->Add(btnCommon, 0, wxALIGN_CENTER_VERTICAL);
-
     // --- UNIQUE REGION SECTION (With Slider) ---
     wxStaticBoxSizer* uniqueGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Find Unique Region");
     uniqueGroup->GetStaticBox()->SetForegroundColour(textWhite);
 
-    lblSliderVal = new wxStaticText(panel, wxID_ANY, "Length: 5");
-    lblSliderVal->SetForegroundColour(textWhite);
+    lblSliderUnique = new wxStaticText(panel, wxID_ANY, "Length: 5");
+    lblSliderUnique->SetForegroundColour(textWhite);
 
     sliderUnique = new wxSlider(panel, wxID_ANY, 5, 1, 50, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
     sliderUnique->SetBackgroundColour(darkBg);
     sliderUnique->SetForegroundColour(textWhite);
 
     sliderUnique->Bind(wxEVT_SLIDER, [this](wxCommandEvent&) {
-        lblSliderVal->SetLabel("Length: " + std::to_string(sliderUnique->GetValue()));
+        lblSliderUnique->SetLabel("Length: " + std::to_string(sliderUnique->GetValue()));
         });
 
     wxButton* btnUnique = new wxButton(panel, wxID_ANY, "Find Unique");
     btnUnique->Bind(wxEVT_BUTTON, &MainFrame::UniqueRegions, this);
 
-    uniqueGroup->Add(lblSliderVal, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+    uniqueGroup->Add(lblSliderUnique, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
     uniqueGroup->Add(sliderUnique, 1, wxEXPAND | wxRIGHT, 10);
     uniqueGroup->Add(btnUnique, 0, wxALIGN_CENTER_VERTICAL);
 
-	// --- MAX REPETITION SECTION ---
-	wxButton* btnMaxRep = new wxButton(panel, wxID_ANY, "Max Repetition");
-	btnMaxRep->Bind(wxEVT_BUTTON, &MainFrame::MaxRepetition, this);
-	toolsSizer->Add(btnMaxRep, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
+    wxStaticLine* line2 = new wxStaticLine(panel, wxID_ANY);
 
+    // --- MAX REPETITION SECTION (With Slider) ---
+    wxStaticBoxSizer* maxRepGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Find Max Repetition");
+    maxRepGroup->GetStaticBox()->SetForegroundColour(textWhite);
+
+    lblSliderMaxRep = new wxStaticText(panel, wxID_ANY, "Pattern Length: 4");
+    lblSliderMaxRep->SetForegroundColour(textWhite);
+
+    sliderMaxRep = new wxSlider(panel, wxID_ANY, 4, 2, 20, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+    sliderMaxRep->SetBackgroundColour(darkBg);
+    sliderMaxRep->SetForegroundColour(textWhite);
+
+    sliderMaxRep->Bind(wxEVT_SLIDER, [this](wxCommandEvent&) {
+        lblSliderMaxRep->SetLabel("Pattern Length: " + std::to_string(sliderMaxRep->GetValue()));
+        });
+
+    wxButton* btnMaxRep = new wxButton(panel, wxID_ANY, "Find Max Repetition");
+    btnMaxRep->Bind(wxEVT_BUTTON, &MainFrame::MaxRepetition, this);
+
+    maxRepGroup->Add(lblSliderMaxRep, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+    maxRepGroup->Add(sliderMaxRep, 1, wxEXPAND | wxRIGHT, 10);
+    maxRepGroup->Add(btnMaxRep, 0, wxALIGN_CENTER_VERTICAL);
+
+    // --- COMMON REGION BUTTON ---
+    wxBoxSizer* commonSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region (Uses Both Sequences)");
+    btnCommon->Bind(wxEVT_BUTTON, &MainFrame::findCommonRegion, this);
+    commonSizer->Add(btnCommon, 0, wxALIGN_CENTER_VERTICAL);
 
     // --- OUTPUT SECTION ---
     wxStaticText* labelRes = new wxStaticText(panel, wxID_ANY, "Results / Status:");
@@ -137,13 +156,17 @@ MainFrame::MainFrame(const wxString& title)
     vbox->Add(labelTitleB, 0, wxLEFT | wxRIGHT | wxTOP, 10);
     vbox->Add(fileBSizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
 
-    wxStaticLine* line1 = new wxStaticLine(panel, wxID_ANY);
     vbox->Add(line1, 0, wxEXPAND | wxALL, 10);
 
-    vbox->Add(seqSelectGroup, 0, wxEXPAND | wxALL, 10);
+    vbox->Add(radioGroup, 0, wxEXPAND | wxALL, 10);
     vbox->Add(searchSizer, 0, wxEXPAND | wxALL, 10);
-    vbox->Add(toolsSizer, 0, wxEXPAND | wxALL, 10);
     vbox->Add(uniqueGroup, 0, wxEXPAND | wxALL, 10);
+
+    vbox->Add(line2, 0, wxEXPAND | wxALL, 10);
+
+    vbox->Add(maxRepGroup, 0, wxEXPAND | wxALL, 10);
+
+    vbox->Add(commonSizer, 0, wxEXPAND | wxALL, 10);
 
     vbox->Add(labelRes, 0, wxLEFT | wxTOP, 10);
     vbox->Add(output, 1, wxEXPAND | wxALL, 10);
@@ -166,7 +189,6 @@ void MainFrame::OnLoadFileA(wxCommandEvent& event)
         wxString fileContent;
         file.ReadAll(&fileContent);
 
-        // Clean Data
         std::string raw = fileContent.ToStdString();
         loadedSequenceA = "";
         for (char c : raw)
@@ -178,13 +200,11 @@ void MainFrame::OnLoadFileA(wxCommandEvent& event)
             }
         }
 
-        // Update UI
         wxFileName fileName(path);
         lblStatusA->SetLabel("Loaded: " + fileName.GetFullName() +
             " (" + std::to_string(loadedSequenceA.length()) + " bases)");
         output->SetValue("File A loaded successfully.\nReady to search.");
 
-        // Update slider max range
         if (loadedSequenceA.length() < 50 && loadedSequenceA.length() > 0)
         {
             sliderUnique->SetMax(loadedSequenceA.length());
@@ -215,7 +235,6 @@ void MainFrame::OnLoadFileB(wxCommandEvent& event)
         wxString fileContent;
         file.ReadAll(&fileContent);
 
-        // Clean Data
         std::string raw = fileContent.ToStdString();
         loadedSequenceB = "";
         for (char c : raw)
@@ -227,7 +246,6 @@ void MainFrame::OnLoadFileB(wxCommandEvent& event)
             }
         }
 
-        // Update UI
         wxFileName fileName(path);
         lblStatusB->SetLabel("Loaded: " + fileName.GetFullName() +
             " (" + std::to_string(loadedSequenceB.length()) + " bases)");
@@ -239,10 +257,9 @@ void MainFrame::OnLoadFileB(wxCommandEvent& event)
     }
 }
 
-// --- SEARCH FUNCTION (Uses Selected Sequence) ---
+// --- SEARCH FUNCTION ---
 void MainFrame::SearchPattern(wxCommandEvent& event)
 {
-    // Determine which sequence to use based on radio button selection
     bool useSeqA = radioSeqA->GetValue();
     std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
     std::string seqName = useSeqA ? "A" : "B";
@@ -294,10 +311,9 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
     }
 }
 
-// --- UNIQUE REGIONS FUNCTION (Uses Selected Sequence) ---
+// --- UNIQUE REGIONS FUNCTION ---
 void MainFrame::UniqueRegions(wxCommandEvent& event)
 {
-    // Determine which sequence to use based on radio button selection
     bool useSeqA = radioSeqA->GetValue();
     std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
     std::string seqName = useSeqA ? "A" : "B";
@@ -329,6 +345,37 @@ void MainFrame::UniqueRegions(wxCommandEvent& event)
     delete[] res;
 }
 
+// --- MAX REPETITION FUNCTION ---
+void MainFrame::MaxRepetition(wxCommandEvent& event)
+{
+    bool useSeqA = radioSeqA->GetValue();
+    std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
+    std::string seqName = useSeqA ? "A" : "B";
+
+    if (selectedSequence.empty())
+    {
+        output->SetValue("Error: No DNA file " + seqName + " loaded. Please load file " + seqName + " first.");
+        return;
+    }
+
+    int x = sliderMaxRep->GetValue();
+    int count = 0;
+    std::string res = "";
+    std::string maxRepetition = DNA::findMaxRepetition(selectedSequence, x, count, res);
+
+    if (res.empty())
+    {
+        output->SetValue("No repeating pattern of length " + std::to_string(x) + " found in Sequence " + seqName + ".");
+    }
+    else
+    {
+        output->SetValue("Max Repeating Pattern in Sequence " + seqName + ":\n" +
+            "Pattern: " + res + "\n" +
+            "Repeated: " + std::to_string(count) + " times");
+    }
+}
+
+// --- COMMON REGION FUNCTION ---
 void MainFrame::findCommonRegion(wxCommandEvent& event)
 {
     if (loadedSequenceA.empty() || loadedSequenceB.empty())
@@ -345,28 +392,5 @@ void MainFrame::findCommonRegion(wxCommandEvent& event)
     {
         output->SetValue("Largest Common Region Found (Length " +
             std::to_string(commonRegion.length()) + "):\n" + commonRegion);
-    }
-}
-
-void MainFrame::MaxRepetition(wxCommandEvent& event)
-{
-    // Determine which sequence to use based on radio button selection
-    bool useSeqA = radioSeqA->GetValue();
-    std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
-    std::string seqName = useSeqA ? "A" : "B";
-    if (selectedSequence.empty())
-    {
-        output->SetValue("Error: No DNA file " + seqName + " loaded. Please load file " + seqName + " first.");
-        return;
-    }
-    int x = sliderUnique->GetValue();
-    std::string res = DNA::findMaxRepetition(selectedSequence, x);
-    if (res.empty())
-    {
-        output->SetValue("No substring of length " + std::to_string(x) + " found that repeats in Sequence " + seqName + ".");
-    }
-    else
-    {
-        output->SetValue("Max Repeating Substring of Length " + std::to_string(x) + " in Sequence " + seqName + ":\n" + res);
     }
 }

@@ -17,20 +17,6 @@ namespace DNA {
         // Call suffix tree search
         return tree.searchPattern(pattern, count);
     }
-    
-    std::string* DNA :: findUniqueRegion(const std::string& sequence,int x){
-        std::string* arr = new std::string[1];
-        std::string newSequence = sequence + "$";
-        Suffix tree;
-        tree.makeSuffixTree(newSequence);
-        tree.countLeaves(tree.root);
-        int temp =0;
-        string path = "";
-        int index = 0;
-        tree.findUniqueRegion(tree.root, x, 0, arr, index, path); 
-        return arr;
-
-    }
 
     std::string* DNA :: findUniqueRegion(const std::string& sequence,int x){
         std::string* arr = new std::string[1];
@@ -46,7 +32,7 @@ namespace DNA {
 
     }
 
-    void DNA :: findMaxRepetition(const std::string& sequence, int x, int& count, string& res){
+    std::string DNA :: findMaxRepetition(const std::string& sequence, int x, int& count, string& res){
         std::string newSequence = sequence + "$";
         Suffix tree;
         tree.makeSuffixTree(newSequence);
@@ -55,7 +41,7 @@ namespace DNA {
         string path = "";
         int maxCount = 0;
         tree.findMaxRepetition(tree.root, 4, maxCount, 0, path, res); 
-        return;
+        return res;
 
     }
     
@@ -64,15 +50,4 @@ namespace DNA {
         Suffix tree;
         return tree.findLargestCommonRegion(s1, s2);
     }
-
-    std::string DNA :: findMaxRepetition(const std::string& sequence, int x) {
-        Suffix tree;
-        std::string seq = sequence + "$";
-        tree.makeSuffixTree(seq);
-        tree.countLeaves(tree.root);
-        std::string res = "";
-        int count = 0;
-        tree.findMaxRepetition(tree.root, x, count, 0, res);
-        return res;
-	}
 }
