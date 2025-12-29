@@ -312,39 +312,50 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
 }
 
 // --- UNIQUE REGIONS FUNCTION ---
+// --- UNIQUE REGIONS FUNCTION ---
 void MainFrame::UniqueRegions(wxCommandEvent& event)
 {
+    // 1. Determine which sequence to use (A or B)
     bool useSeqA = radioSeqA->GetValue();
     std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
     std::string seqName = useSeqA ? "A" : "B";
 
-    if (selectedSequence.empty())
-    {
+    // 2. Safety Check
+    if (selectedSequence.empty()) {
         output->SetValue("Error: No DNA file " + seqName + " loaded. Please load file " + seqName + " first.");
         return;
     }
 
+    // 3. Get Length 'X' from Slider
     int x = sliderUnique->GetValue();
+
+    // 4. Call Backend
     std::string* res = DNA::findUniqueRegion(selectedSequence, x);
 
-    if (!res)
-    {
+    if (!res) {
         output->SetValue("Error: Backend returned null.");
         return;
     }
 
-    if (res[0].empty())
-    {
+    // 5. Format Output (Loop through the 3 results)
+    if (res[0].empty()) {
         output->SetValue("No unique region of length " + std::to_string(x) + " found in Sequence " + seqName + ".");
     }
-    else
-    {
-        output->SetValue("Found Unique Region in Sequence " + seqName + " (Length " + std::to_string(x) + "):\n" + res[0]);
+    else {
+        wxString msg;
+        msg << "Found Unique Regions in " << seqName << " (Length " << x << "):\n\n";
+
+        for (int i = 0; i < 3; i++) {
+            if (!res[i].empty()) {
+                msg << (i + 1) << ". " << res[i] << "\n";
+            }
+        }
+        output->SetValue(msg);
     }
 
+    // 6. Cleanup
     delete[] res;
 }
-
 // --- MAX REPETITION FUNCTION ---
 void MainFrame::MaxRepetition(wxCommandEvent& event)
 {

@@ -19,7 +19,7 @@ namespace DNA {
     }
 
     std::string* DNA :: findUniqueRegion(const std::string& sequence,int x){
-        std::string* arr = new std::string[1];
+        std::string* arr = new std::string[3];
         std::string newSequence = sequence + "$";
         Suffix tree;
         tree.makeSuffixTree(newSequence);
@@ -40,7 +40,7 @@ namespace DNA {
         int temp =0;
         string path = "";
         int maxCount = 0;
-        tree.findMaxRepetition(tree.root, 4, maxCount, 0, path, res); 
+        tree.findMaxRepetition(tree.root, x, count, maxCount, path, res);
         return res;
 
     }
