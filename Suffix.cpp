@@ -342,21 +342,21 @@ int* Suffix::searchPattern(const std::string& pattern, int& count)
 			return nullptr; // pattern not found
 
         Node* next = current->child[idx];
-        int edgeLen = next->end->end - next->start + 1;
+		int edgeLen = next->end->end - next->start + 1;  //calculate length of edge
 
         for (int j = 0; j < edgeLen && i < pattern.length(); j++, i++)
         {
-            if (text[next->start + j] != pattern[i])
-                return nullptr;
+			if (text[next->start + j] != pattern[i]) // if character on edge does not match pattern character
+				return nullptr; // pattern not found
         }
-        current = next;
+		current = next;  // move to next node
     }
 
-    int capacity = 200000;
-    int* result = new int[capacity];
+	int capacity = 100;  // initial capacity for result array
+	int* result = new int[capacity]; // array to store leaf indices
     count = 0;
 
-    collectLeafIndices(current, result, count, capacity);
+	collectLeafIndices(current, result, count, capacity); // collect leaf indices under current node
     return result;
 }
 

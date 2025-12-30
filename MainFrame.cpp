@@ -94,7 +94,7 @@ MainFrame::MainFrame(const wxString& title)
     lblSliderUnique = new wxStaticText(panel, wxID_ANY, "Length: 5");
     lblSliderUnique->SetForegroundColour(textWhite);
 
-    sliderUnique = new wxSlider(panel, wxID_ANY, 5, 1, 50, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+    sliderUnique = new wxSlider(panel, wxID_ANY, 5, 1, 50000, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
     sliderUnique->SetBackgroundColour(darkBg);
     sliderUnique->SetForegroundColour(textWhite);
 
@@ -205,13 +205,13 @@ void MainFrame::OnLoadFileA(wxCommandEvent& event)
             " (" + std::to_string(loadedSequenceA.length()) + " bases)");
         output->SetValue("File A loaded successfully.\nReady to search.");
 
-        if (loadedSequenceA.length() < 50 && loadedSequenceA.length() > 0)
+        if (loadedSequenceA.length() < 50000 && loadedSequenceA.length() > 0)
         {
             sliderUnique->SetMax(loadedSequenceA.length());
         }
         else
         {
-            sliderUnique->SetMax(50);
+            sliderUnique->SetMax(50000);
         }
     }
     else
