@@ -338,10 +338,10 @@ int* Suffix::searchPattern(const std::string& pattern, int& count)
 	while (i < pattern.length()) // while there are still characters left in pattern to match
     {
 		int idx = getIndex(pattern[i]); // get index of current character in pattern
-		if (idx == -1 || current->child[idx] == nullptr) // if index is at leaf node or character not found 
+		if (idx == -1 || current->child[idx] == nullptr) // if index is not a character code or character not found 
 			return nullptr; // pattern not found
 
-        Node* next = current->child[idx];
+		Node* next = current->child[idx]; // move to child node corresponding to current character
 		int edgeLen = next->end->end - next->start + 1;  //calculate length of edge
 
         for (int j = 0; j < edgeLen && i < pattern.length(); j++, i++)
