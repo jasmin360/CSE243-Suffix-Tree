@@ -10,10 +10,10 @@
 MainFrame::MainFrame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(900, 800))
 {
-    // --- THEME COLORS ---
+    // THEME COLORS 
     wxColour darkBg("#1e272e");
     wxColour lightBg("#485460");
-    wxColour textWhite(*wxWHITE);
+    wxColour textWhite("#FFFFFF");
     wxColour accentGreen("#05c46b");
     wxColour accentBlue("#0fbcf9");
 
@@ -22,13 +22,14 @@ MainFrame::MainFrame(const wxString& title)
     panel->SetBackgroundColour(darkBg);
     panel->SetForegroundColour(textWhite);
 
-    wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL); //GUI will be based on vertical layout
 
-    // --- FILE UPLOAD SECTION (SEQ A) ---
+    // FILE UPLOAD SECTION (SEQ A)
+    //Text label at top
     wxStaticText* labelTitleA = new wxStaticText(panel, wxID_ANY, "DNA Sequence A:");
     labelTitleA->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     labelTitleA->SetForegroundColour(textWhite);
-
+	//Buttons and other text in horizontal layout
     wxBoxSizer* fileASizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* btnLoadFileA = new wxButton(panel, wxID_ANY, "Load DNA File A (.txt)");
     btnLoadFileA->SetBackgroundColour(accentGreen);
@@ -42,7 +43,7 @@ MainFrame::MainFrame(const wxString& title)
 
     btnLoadFileA->Bind(wxEVT_BUTTON, &MainFrame::OnLoadFileA, this);
 
-    // --- FILE UPLOAD SECTION (SEQ B) ---
+    // FILE UPLOAD SECTION (SEQ B) 
     wxStaticText* labelTitleB = new wxStaticText(panel, wxID_ANY, "DNA Sequence B:");
     labelTitleB->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     labelTitleB->SetForegroundColour(textWhite);
@@ -62,7 +63,7 @@ MainFrame::MainFrame(const wxString& title)
 
     wxStaticLine* line1 = new wxStaticLine(panel, wxID_ANY);
 
-    // --- RADIO BUTTON SECTION (Target Sequence) ---
+    // RADIO BUTTON SECTION (Target Sequence)
     wxStaticBoxSizer* radioGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Target Sequence");
     radioGroup->GetStaticBox()->SetForegroundColour(textWhite);
 
@@ -75,7 +76,7 @@ MainFrame::MainFrame(const wxString& title)
     radioGroup->Add(radioSeqA, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
     radioGroup->Add(radioSeqB, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- SEARCH INPUT SECTION ---
+    // SEARCH INPUT SECTION 
     wxBoxSizer* searchSizer = new wxBoxSizer(wxHORIZONTAL);
     searchInput = new wxTextCtrl(panel, wxID_ANY, "Enter pattern (e.g. TG)...");
     searchInput->SetBackgroundColour(lightBg);
@@ -87,7 +88,7 @@ MainFrame::MainFrame(const wxString& title)
     searchSizer->Add(searchInput, 1, wxEXPAND | wxRIGHT, 10);
     searchSizer->Add(btnSearch, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- UNIQUE REGION SECTION (With Slider) ---
+    // UNIQUE REGION SECTION 
     wxStaticBoxSizer* uniqueGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Find Unique Region");
     uniqueGroup->GetStaticBox()->SetForegroundColour(textWhite);
 
@@ -111,14 +112,14 @@ MainFrame::MainFrame(const wxString& title)
 
     wxStaticLine* line2 = new wxStaticLine(panel, wxID_ANY);
 
-    // --- MAX REPETITION SECTION (With Slider) ---
+    // MAX REPETITION SECTION 
     wxStaticBoxSizer* maxRepGroup = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Find Max Repetition");
     maxRepGroup->GetStaticBox()->SetForegroundColour(textWhite);
 
     lblSliderMaxRep = new wxStaticText(panel, wxID_ANY, "Pattern Length: 4");
     lblSliderMaxRep->SetForegroundColour(textWhite);
 
-    sliderMaxRep = new wxSlider(panel, wxID_ANY, 4, 2, 20, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+    sliderMaxRep = new wxSlider(panel, wxID_ANY, 4, 1, 50000, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
     sliderMaxRep->SetBackgroundColour(darkBg);
     sliderMaxRep->SetForegroundColour(textWhite);
 
@@ -133,13 +134,13 @@ MainFrame::MainFrame(const wxString& title)
     maxRepGroup->Add(sliderMaxRep, 1, wxEXPAND | wxRIGHT, 10);
     maxRepGroup->Add(btnMaxRep, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- COMMON REGION BUTTON ---
+    //COMMON REGION BUTTON
     wxBoxSizer* commonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* btnCommon = new wxButton(panel, wxID_ANY, "Find Common Region (Uses Both Sequences)");
     btnCommon->Bind(wxEVT_BUTTON, &MainFrame::findCommonRegion, this);
     commonSizer->Add(btnCommon, 0, wxALIGN_CENTER_VERTICAL);
 
-    // --- OUTPUT SECTION ---
+    //OUTPUT SECTION
     wxStaticText* labelRes = new wxStaticText(panel, wxID_ANY, "Results / Status:");
     labelRes->SetForegroundColour(textWhite);
 
@@ -149,7 +150,7 @@ MainFrame::MainFrame(const wxString& title)
     output->SetForegroundColour(textWhite);
     output->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
-    // --- LAYOUT ASSEMBLY ---
+    // LAYOUT ASSEMBLY
     vbox->Add(labelTitleA, 0, wxALL, 10);
     vbox->Add(fileASizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
 
@@ -174,7 +175,7 @@ MainFrame::MainFrame(const wxString& title)
     panel->SetSizer(vbox);
 }
 
-// --- FILE LOADING FUNCTION A ---
+// FILE LOADING FUNCTION A
 void MainFrame::OnLoadFileA(wxCommandEvent& event)
 {
     wxFileDialog openFileDialog(this, "Open DNA Text File A", "", "",
@@ -205,13 +206,15 @@ void MainFrame::OnLoadFileA(wxCommandEvent& event)
             " (" + std::to_string(loadedSequenceA.length()) + " bases)");
         output->SetValue("File A loaded successfully.\nReady to search.");
 
-        if (loadedSequenceA.length() < 50000 && loadedSequenceA.length() > 0)
+        if (loadedSequenceA.length() || loadedSequenceB.length() < 50000 && loadedSequenceA.length()||loadedSequenceB.length() > 0)
         {
             sliderUnique->SetMax(loadedSequenceA.length());
+			sliderMaxRep->SetMax(loadedSequenceA.length());
         }
         else
         {
             sliderUnique->SetMax(50000);
+			sliderMaxRep->SetMax(50000);
         }
     }
     else
@@ -220,7 +223,7 @@ void MainFrame::OnLoadFileA(wxCommandEvent& event)
     }
 }
 
-// --- FILE LOADING FUNCTION B ---
+// FILE LOADING FUNCTION B 
 void MainFrame::OnLoadFileB(wxCommandEvent& event)
 {
     wxFileDialog openFileDialog(this, "Open DNA Text File B", "", "",
@@ -257,7 +260,7 @@ void MainFrame::OnLoadFileB(wxCommandEvent& event)
     }
 }
 
-// --- SEARCH FUNCTION ---
+// SEARCH FUNCTION 
 void MainFrame::SearchPattern(wxCommandEvent& event)
 {
     bool useSeqA = radioSeqA->GetValue();
@@ -274,9 +277,16 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
     std::string pattern = "";
     for (char c : rawPattern)
     {
+        
         char upper = toupper(c);
         if (upper == 'A' || upper == 'C' || upper == 'G' || upper == 'T')
             pattern += upper;
+
+		if (upper != 'A' && upper != 'C' && upper != 'G' && upper != 'T' && !isspace(upper))
+        {
+            output->SetValue("Error: Invalid character '" + std::string(1, c) + "' in search pattern. Only A, C, G, T are allowed.");
+            return;
+        }
     }
 
     if (pattern.empty())
@@ -296,14 +306,10 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
     {
         wxString resultMsg;
         resultMsg << "Pattern '" << pattern << "' found " << count << " times in Sequence " << seqName << " at indices:\n";
-        int limit = (count > 5000) ? 5000 : count;
-        for (int i = 0; i < limit; i++)
+        for (int i = 0; i < count; i++)
         {
             resultMsg << indices[i] << ", ";
         }
-        if (count > limit)
-            resultMsg << "... (truncated)";
-        else if (resultMsg.EndsWith(", "))
             resultMsg.RemoveLast(2);
 
         output->SetValue(resultMsg);
@@ -311,11 +317,9 @@ void MainFrame::SearchPattern(wxCommandEvent& event)
     }
 }
 
-// --- UNIQUE REGIONS FUNCTION ---
-// --- UNIQUE REGIONS FUNCTION ---
+// UNIQUE REGIONS FUNCTION 
 void MainFrame::UniqueRegions(wxCommandEvent& event)
 {
-    // 1. Determine which sequence to use (A or B)
     bool useSeqA = radioSeqA->GetValue();
     std::string& selectedSequence = useSeqA ? loadedSequenceA : loadedSequenceB;
     std::string seqName = useSeqA ? "A" : "B";
@@ -326,10 +330,8 @@ void MainFrame::UniqueRegions(wxCommandEvent& event)
         return;
     }
 
-    // 3. Get Length 'X' from Slider
     int x = sliderUnique->GetValue();
 
-    // 4. Call Backend
     std::string* res = DNA::findUniqueRegion(selectedSequence, x);
 
     if (!res) {
@@ -337,7 +339,6 @@ void MainFrame::UniqueRegions(wxCommandEvent& event)
         return;
     }
 
-    // 5. Format Output (Loop through the 3 results)
     if (res[0].empty()) {
         output->SetValue("No unique region of length " + std::to_string(x) + " found in Sequence " + seqName + ".");
     }
@@ -353,10 +354,9 @@ void MainFrame::UniqueRegions(wxCommandEvent& event)
         output->SetValue(msg);
     }
 
-    // 6. Cleanup
     delete[] res;
 }
-// --- MAX REPETITION FUNCTION ---
+// --- MAX REPETITION FUNCTION 
 void MainFrame::MaxRepetition(wxCommandEvent& event)
 {
     bool useSeqA = radioSeqA->GetValue();
