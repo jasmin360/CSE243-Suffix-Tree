@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog 
 import math
 import random
 import ctypes
@@ -127,6 +128,11 @@ CYAN_DIM = "#005555"
 GREEN = "#2f7f21"
 TEXT_DIM = "#a3f7ff"
 
+BoxTop=150
+BoxBottom = 100
+BoxLeft= 180
+BoxRight=200
+
 DNA_FRONT = "#7fdfe3"
 DNA_BACK  = "#2f6f73"
 DNA_RUNG  = "#005f6b"
@@ -152,6 +158,11 @@ canvas.pack(fill="both", expand=True)
 
 DNA_TAG = "dna"
 UI_TAG  = "ui"
+
+dna_database = {
+    "A": "Empty", 
+    "B": "Empty"
+}
 
 # ================= GRID =================
 
@@ -252,6 +263,47 @@ def init_particles(cx, length):
 # ================= DNA ANIMATION =================
 dna_items = []
 phase = 0.0
+def draw_bounding_box(points, pad_l, pad_r, pad_t, pad_b, color="#1b4f52", width=1):
+    """
+    Draws the bounding box with a 'Scale/Ruler' effect.
+    """
+    if not points:
+        return
+
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+
+    # 1. Calculate main coordinates
+    min_x = min(xs) - pad_l
+    max_x = max(xs) + pad_r
+    min_y = min(ys) - pad_t
+    max_y = max(ys) + pad_b
+
+    # 2. Draw Main Rectangle Frame
+    dna_items.append(
+        canvas.create_rectangle(
+            min_x, min_y, max_x, max_y,
+            outline=color,
+            width=width
+        )
+    )
+
+   
+    tick_spacing = 90
+    tick_len_large = 15
+    start_y = int(min_y)
+    end_y = int(max_y)
+    county = 0
+    for y in range(start_y, end_y, tick_spacing):
+        if county % 5 == 0:
+            length = tick_len_large
+
+        
+    
+        dna_items.append(
+            canvas.create_line(max_x, y, max_x - length, y, fill=color, width=1, tags=DNA_TAG)
+        )
+        county += 1
 
 def draw_rotating_dna(cx, cy, length=1000, amplitude=130, points=110):
     global phase, dna_items
@@ -262,6 +314,7 @@ def draw_rotating_dna(cx, cy, length=1000, amplitude=130, points=110):
     # --- 1. CALCULATE PARTICLE POSITIONS ---
     # We calculate all positions first so we can compare them for lines
     active_points = []
+    helixpoints = []
     
     for p in particles:
         curr_angle = p["angle"] + (phase * 0.5 * p["speed"])
@@ -328,6 +381,8 @@ def draw_rotating_dna(cx, cy, length=1000, amplitude=130, points=110):
         # Positions
         y1 = cy + math.sin(angle_sin) * amplitude
         y2 = cy + math.sin(angle_sin + math.pi) * amplitude
+        helixpoints.append((x, y1))
+        helixpoints.append((x, y2))
 
         # Depth (z) for sizing
         z1 = math.sin(angle_cos + math.pi / 2)
@@ -347,10 +402,20 @@ def draw_rotating_dna(cx, cy, length=1000, amplitude=130, points=110):
         scale2 = (z2 + 1.5) / 2.5
         radius2 = 3 * scale2
         create_glowing_dot(x, y2, radius2, CYAN)
+    
+    draw_bounding_box(
+        helixpoints, 
+        pad_l=BoxLeft,
+        pad_r=BoxRight,
+        pad_t=BoxTop, 
+        pad_b=BoxBottom, 
+        color="#1b4f52"
+    )
 
     # --- ANIMATE ---
     phase += 0.025
     root.after(30, draw_rotating_dna, cx, cy)
+
 
 
 # ================= BUTTON =================
@@ -415,6 +480,72 @@ def create_canvas_button(x, y, w, h, text, command,
     return rect, label
 
 
+##### INPUT SEQUENCES
+selectedseq = "A"
+radiobtn = {}
+def updateradiovis():
+    active_fill = "#008888"
+    active_outline = "#00FFFF"
+    inactive_fill = "#002222"
+    inactive_outline = "#005555"
+    rect_a, _ = radiobtn["A"]
+    if selectedseq == "A":
+        canvas.itemconfig(rect_a, fill=active_fill, outline=active_outline)
+    else:
+        canvas.itemconfig(rect_a, fill=inactive_fill, outline=inactive_outline)
+    rect_b,_ = radiobtn["B"]
+    if selectedseq == "B":
+        canvas.itemconfig(rect_b, fill=active_fill, outline=active_outline)
+    else:
+        canvas.itemconfig(rect_b, fill=inactive_fill, outline=inactive_outline)
+def selectseqa(event):
+    global selectedseq
+    selectedseq = "A"
+    print("Sequence A Selected")
+    updateradiovis()
+def selectseqb(event):
+    global selectedseq
+    selectedseq = "B"
+    print("Sequence B Selected")
+    updateradiovis()
+def loadfile(target):
+    filepath = filedialog.askopenfilename(title=f"Load Text File for SEQ {target}", filetypes=[("Text Files","*.txt")])
+    if filepath:
+        try:
+            with open(filepath, 'r') as f:
+                content = f.read().strip()
+                dna_database[target] = content
+                
+            print(f"SYSTEM: Loaded {len(content)} chars into SEQUENCE {target}")
+            print(f"PREVIEW: {content[:100]}...")
+            
+            global selectedseq
+            selectedseq = target
+            updateradiovis()
+            
+        except Exception as e:
+            print(f"ERROR: Could not read file. {e}")
+def create_radio_group_ui():
+    start_x = 1380
+    start_y = 80
+    btn_w = 80
+    btn_h = 30
+    rect_a = create_rounded_rect(start_x, start_y, start_x+btn_w, start_y+btn_h, 8, width=1, tags=UI_TAG)
+    text_a = canvas.create_text(start_x + btn_w/2, start_y + btn_h/2, text="SEQ A", fill="#7fdfe3", font=("Consolas", 11, "bold"), tags=UI_TAG)
+    canvas.tag_bind(rect_a, "<Button-1>", selectseqa)
+    canvas.tag_bind(text_a, "<Button-1>", selectseqa)
+    radiobtn["A"] = (rect_a, text_a)
+    create_canvas_button(start_x + btn_w + 10, start_y, 100, 30, "LOAD FILE A", command=lambda: loadfile("A"), radius=8, font=("Consolas", 9, "bold"))
+    y2 = start_y + 40 
+    rect_b = create_rounded_rect(start_x, y2, start_x+btn_w, y2+btn_h, 8, width=1, tags=UI_TAG)
+    text_b = canvas.create_text(start_x + btn_w/2, y2 + btn_h/2, text="SEQ B", fill="#7fdfe3", font=("Consolas", 11, "bold"), tags=UI_TAG)
+    canvas.tag_bind(rect_b, "<Button-1>", selectseqb)
+    canvas.tag_bind(text_b, "<Button-1>", selectseqb)
+    radiobtn["B"] = (rect_b, text_b)
+    create_canvas_button(start_x + btn_w + 10, y2, 100, 30, "LOAD FILE B", command=lambda: loadfile("B"), radius=8, font=("Consolas", 9, "bold"))
+    
+    updateradiovis()
+
 
 # ================= START =================
 
@@ -429,6 +560,13 @@ draw_hud_text()
 draw_results()
 
 draw_rotating_dna(WIDTH // 2 +130 , HEIGHT // 2 -200 , points=POINTS)
+def on_click():
+    # Retrieve the data we loaded earlier
+    data = dna_database[selectedseq]
+    print("------------------------------------------------")
+    print(f"TARGET          : SEQUENCE {selectedseq}")
+    print(f"INPUT DATA      : {data[:1000]}...") 
+    print("------------------------------------------------")
 
 
 BOXEND= 600
@@ -521,7 +659,7 @@ input_label3.place(x=BOX *3 + 40, y=BOXEND+BASEEE)
 
 
 def on_search_click():
-    seq = "ACGTACGTACGT"
+    seq = dna_database[selectedseq]
     pat = searchpat.get()   
 
     matches = call_search_pattern(seq, pat)
@@ -529,7 +667,7 @@ def on_search_click():
 
 
 def on_maxrep_click():
-    seq = "ACGTACGTACGT"
+    seq = dna_database[selectedseq]
     x= int(x1.get())
     region, freq = call_max_repetition(seq, x)
 
@@ -539,7 +677,7 @@ def on_maxrep_click():
 
 
 def on_unique_click():
-    seq = "CACATGTCATGT"
+    seq = dna_database[selectedseq]
     x = int(x2.get())
     regions = call_unique_region(seq,x)
 
@@ -548,8 +686,8 @@ def on_unique_click():
 
 
 def on_lcr_click():
-    s1 = "ACGTACGT"
-    s2 = "GTAC"
+    s1 = dna_database["A"]
+    s2 = dna_database["B"]
 
     result = call_largest_common(s1, s2)
     print("Largest common region:", result)
@@ -598,7 +736,7 @@ create_canvas_button(
 )
 
 
-
+create_radio_group_ui()
 canvas.tag_raise(UI_TAG)
 
 
