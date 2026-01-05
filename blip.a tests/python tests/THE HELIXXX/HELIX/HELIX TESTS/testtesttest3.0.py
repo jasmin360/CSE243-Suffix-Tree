@@ -231,11 +231,11 @@ def draw_rotating_dna(cx, cy, length=1500, amplitude=95, points=110): # 980, 95,
 
 # ================= SCAN LINE =================
 
-#scan_line = canvas.create_line(0, 0, 0, HEIGHT, fill=CYAN_DIM, width=1)
+scan_line = canvas.create_line(0, 0, 0, HEIGHT, fill=CYAN_DIM, width=1)
 
-#def animate_scan(x=0):
-#    canvas.coords(scan_line, x, -500, x, 500)
-#    root.after(25, animate_scan, (x + 2) % WIDTH)
+def animate_scan(x=0):
+    canvas.coords(scan_line, x, -500, x, 500)
+    root.after(25, animate_scan, (x + 7) % WIDTH)
 
 # ================= START =================
 
@@ -247,6 +247,6 @@ draw_hud_text()
 draw_results()
 
 draw_rotating_dna(WIDTH // 2 - 185 , HEIGHT // 2 -200 , points=POINTS)
-#animate_scan()
+animate_scan()
 
 root.mainloop()
