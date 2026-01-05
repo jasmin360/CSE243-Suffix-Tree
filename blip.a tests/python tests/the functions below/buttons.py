@@ -324,11 +324,11 @@ draw_grid()
 draw_hud_text()
 draw_results()
 
-draw_rotating_dna(WIDTH // 2 - 50 , HEIGHT // 2 -200 , points=POINTS)
+draw_rotating_dna(WIDTH // 2 +130 , HEIGHT // 2 -200 , points=POINTS)
 def on_click():
     print("Button clicked!")
 
-BOXEND= 590
+BOXEND= 600
 PERSIDE=112.25
 BOX= 424.5
 
