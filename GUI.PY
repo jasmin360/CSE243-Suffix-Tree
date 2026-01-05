@@ -1,6 +1,110 @@
 import tkinter as tk
 import math
 import random
+import ctypes
+from ctypes import c_char_p, c_int, POINTER
+import os
+
+dll_path = r"c:\New folder\ds project\CSE243-Suffix-Tree\dna.dll"
+
+print("DLL PATH:", dll_path)
+print("EXISTS:", os.path.exists(dll_path))
+
+os.add_dll_directory(os.path.dirname(dll_path))
+dna = ctypes.CDLL(dll_path)
+print("DLL LOADED SUCCESSFULLY")
+
+# ================= FUNCTION SIGNATURES =================
+
+# int* dna_search_pattern(const char*, const char*, int*)
+dna.dna_search_pattern.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.POINTER(ctypes.c_int)
+]
+dna.dna_search_pattern.restype = ctypes.POINTER(ctypes.c_int)
+
+
+# const char** dna_unique_region(const char*, int)
+dna.dna_unique_regions.argtypes = [ctypes.c_char_p, ctypes.c_int]
+dna.dna_unique_regions.restype = ctypes.POINTER(ctypes.c_char_p)
+
+
+
+# const char* dna_max_repetition(const char*, int, int*)
+dna.dna_max_repetition.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_int)
+]
+dna.dna_max_repetition.restype = ctypes.c_char_p
+
+
+# const char* dna_largest_common(const char*, const char*)
+dna.dna_largest_common.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_char_p
+]
+dna.dna_largest_common.restype = ctypes.c_char_p
+
+
+
+
+#SDJBCKJSDHFKJSDHFKSJDHFSJKFH
+def call_search_pattern(sequence, pattern):
+    count = ctypes.c_int()
+
+    result_ptr = dna.dna_search_pattern(
+        sequence.encode("utf-8"),
+        pattern.encode("utf-8"),
+        ctypes.byref(count)
+    )
+
+    results = []
+    for i in range(count.value):
+        results.append(result_ptr[i])
+
+    return results
+
+
+def call_largest_common(s1, s2):
+    res = dna.dna_largest_common(
+        s1.encode("utf-8"),
+        s2.encode("utf-8")
+    )
+
+    return res.decode("utf-8")
+
+
+
+def call_max_repetition(sequence, x):
+    count = ctypes.c_int()
+
+    res = dna.dna_max_repetition(
+        sequence.encode("utf-8"),
+        x,
+        ctypes.byref(count)
+    )
+
+    return res.decode("utf-8"), count.value
+
+
+
+def call_unique_region(sequence, x):
+    arr = dna.dna_unique_regions(sequence.encode("utf-8"), x)
+
+    results = []
+    for i in range(3):
+        ptr = arr[i]
+        if ptr:
+            results.append(ptr.decode("utf-8"))
+        else:
+            results.append("")   # or "N/A"
+
+    return results
+
+
+
 
 # ================= CONFIG =================
 
@@ -416,12 +520,39 @@ input_label3.place(x=BOX *3 + 40, y=BOXEND+BASEEE)
 
 
 
-def on_click():
-    value = searchpat.get().strip()
-    if value== "":
-        print("...")
-    else:
-        print(value)
+def on_search_click():
+    seq = "ACGTACGTACGT"
+    pat = searchpat.get()   
+
+    matches = call_search_pattern(seq, pat)
+    print("Matches at indices:", matches)
+
+
+def on_maxrep_click():
+    seq = "ACGTACGTACGT"
+    x= int(x1.get())
+    region, freq = call_max_repetition(seq, x)
+
+    print("Max repetition:", region)
+    print("Count:", freq)
+
+
+
+def on_unique_click():
+    seq = "CACATGTCATGT"
+    x = int(x2.get())
+    regions = call_unique_region(seq,x)
+
+    for r in regions:
+        print("Unique:", r)
+
+
+def on_lcr_click():
+    s1 = "ACGTACGT"
+    s2 = "GTAC"
+
+    result = call_largest_common(s1, s2)
+    print("Largest common region:", result)
 
 
 
@@ -436,7 +567,7 @@ create_canvas_button(
     w=200,
     h=40,
     text="Search Pattern",
-    command=on_click
+    command=on_search_click
 )
 
 create_canvas_button(
@@ -445,7 +576,7 @@ create_canvas_button(
     w=200,
     h=40,
     text="Largest Common Region",
-    command=on_click
+    command=on_lcr_click
 )
 
 create_canvas_button(
@@ -454,7 +585,7 @@ create_canvas_button(
     w=200,
     h=40,
     text="Max Repetition",
-    command=on_click
+    command=on_maxrep_click
 )
 
 create_canvas_button(
@@ -463,7 +594,7 @@ create_canvas_button(
     w=200,
     h=40,
     text="Unique Region",
-    command=on_click
+    command=on_unique_click
 )
 
 
