@@ -129,13 +129,13 @@ particles = []
 
 def init_particles(cx, length):
     for _ in range(PARTICLE_COUNT):
-        x_base = random.randint(int(cx - length/2), int(cx + length/2))
+        x_base = random.randint(int(cx - length/2 +60), int(cx + length/2))
         orbit_radius = random.randint(PARTICLE_MIN_RADIUS, PARTICLE_MAX_RADIUS)
         start_angle = random.uniform(0, math.pi * 2)
         speed = random.uniform(0.5, 1.5)
         
         particles.append({
-            "x": x_base,
+            "x": x_base +200,
             "r": orbit_radius,
             "angle": start_angle,
             "speed": speed,
@@ -146,7 +146,7 @@ def init_particles(cx, length):
 dna_items = []
 phase = 0.0
 
-def draw_rotating_dna(cx, cy, length=1500, amplitude=110, points=110):
+def draw_rotating_dna(cx, cy, length=1000, amplitude=130, points=110):
     global phase, dna_items
 
     # --- CLEAR ---
@@ -260,6 +260,6 @@ draw_grid()
 draw_hud_text()
 draw_results()
 
-draw_rotating_dna(WIDTH // 2 - 185 , HEIGHT // 2 -200 , points=POINTS)
+draw_rotating_dna(WIDTH // 2 - 50 , HEIGHT // 2 -200 , points=POINTS)
 
 root.mainloop()
