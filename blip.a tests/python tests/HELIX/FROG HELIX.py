@@ -15,15 +15,25 @@ CYAN_DIM = "#005555"
 GREEN = "#2f7f21"
 TEXT_DIM = "#a3f7ff"
 
-DNA_FRONT = "#7fdfe3"
+
+DNA_RUNG  = "#005f6b"
+
+GLOW_OUTER = "#002a2a"   # Faint aura
+GLOW_MID   = "#025858"   # Bright halo
+GLOW_CORE  = "#000000"   # White hot center
+
+GLOW_OUTER_BACK = "#002a2a"   # Faint aura
+GLOW_MID_BACK   = "#025858"   # Bright halo
+GLOW_CORE_BACK  = "#000000"   # White hot center
+
+
+DNA_FRONT = "#000000"
 DNA_BACK  = "#2f6f73"
 DNA_RUNG  = "#005f6b"
 
-
-
 HALO_COLOR  = "#4d989b" #"#80FF00"
-HALO_POINTS = 3
-HALO_RADIUS = 10  # base radius (random offsets applied on top)
+HALO_POINTS = 10
+HALO_RADIUS = 50  # base radius (random offsets applied on top)
 
 # Store stable random offsets per (dna index, halo index, strand)
 halo_radius_offsets = {}
@@ -125,9 +135,12 @@ def init_halo_offsets(points):
 dna_items = []
 phase = 0.0
 
-def draw_rotating_dna(cx, cy, length=1500, amplitude=95, points=110): # 980, 95, 110
+def draw_rotating_dna(cx, cy, length=1500, amplitude=110, points=110):
     global phase, dna_items
-
+    
+    DNA_FRONT_RGB = tuple(int(DNA_FRONT[i:i+2], 16) for i in (1, 3, 5))
+    DNA_BACK_RGB  = tuple(int(DNA_BACK[i:i+2], 16) for i in (1, 3, 5))
+    
     # ---------- helper for smooth color blending ----------
     def lerp_color(c1, c2, t):
         r1, g1, b1 = c1
@@ -136,97 +149,98 @@ def draw_rotating_dna(cx, cy, length=1500, amplitude=95, points=110): # 980, 95,
         g = int(g1 + (g2 - g1) * t)
         b = int(b1 + (b2 - b1) * t)
         return f"#{r:02x}{g:02x}{b:02x}"
+    
+    def hex_to_rgb(h):
+        return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
 
-    # Smooth depth colors (RGB)
-    DNA_FRONT_RGB = tuple(int(DNA_FRONT[i:i+2], 16) for i in (1, 3, 5))
-    DNA_BACK_RGB  = tuple(int(DNA_BACK[i:i+2], 16) for i in (1, 3, 5))
+    GLOW_OUTER_RGB = hex_to_rgb("#1d3a3a")
+    GLOW_MID_RGB   = hex_to_rgb("#2bff88")
+    GLOW_CORE_RGB  = hex_to_rgb("#FFFFFF")
 
 
-    # ---------- clear previous frame ----------
+
+
+    # --- CLEAR ---
     for item in dna_items:
         canvas.delete(item)
     dna_items.clear()
 
-    # ---------- draw helix ----------
-    for i in range(points):
+    # --- HELPER: FAKE GLOW ---
+    # Draws 3 circles on top of each other to simulate light bloom
+    def create_depth_glowing_dot(x, y, base_radius, depth_t):
+        """
+        depth_t : 0 (back) → 1 (front)
+        """
 
+        # ---- radius scales with depth ----
+        core_r  = base_radius * (0.6 + 0.6 * depth_t)
+        mid_r   = core_r + 2 + 3 * depth_t
+        outer_r = mid_r  + 3 + 4 * depth_t
+
+        # ---- color fades with depth ----
+        outer_col = lerp_color(DNA_BACK_RGB, GLOW_OUTER_RGB, depth_t)
+        mid_col   = lerp_color(DNA_BACK_RGB, GLOW_MID_RGB,   depth_t)
+        core_col  = lerp_color(DNA_BACK_RGB, GLOW_CORE_RGB,  depth_t)
+
+        # ---- draw glow layers (back → front) ----
+        dna_items.append(canvas.create_oval(
+            x-outer_r, y-outer_r, x+outer_r, y+outer_r,
+            fill=outer_col, outline=""
+        ))
+
+        dna_items.append(canvas.create_oval(
+            x-mid_r, y-mid_r, x+mid_r, y+mid_r,
+            fill=mid_col, outline=""
+        ))
+
+        dna_items.append(canvas.create_oval(
+            x-core_r, y-core_r, x+core_r, y+core_r,
+            fill=core_col, outline=""
+        ))
+
+
+    # --- DRAW LOOP ---
+    for i in range(points):
         x = cx - length / 2 + (length / points) * i
 
+        # Angles
         angle_sin = i * 0.12 + phase
         angle_cos = i * 0.09 + phase
 
+        # Positions
         y1 = cy + math.sin(angle_sin) * amplitude
         y2 = cy + math.sin(angle_sin + math.pi) * amplitude
 
+        # Depth (z) for sizing
         z1 = math.sin(angle_cos + math.pi / 2)
         z2 = math.sin(angle_cos + math.pi / 2 + math.pi)
 
-        # ---------- ladder rung ----------
+        # Draw Rung (Darker line behind)
         dna_items.append(
-            canvas.create_line(x, y1, x, y2, fill=DNA_RUNG, width=1)
+            canvas.create_line(x, y1, x, y2, fill=DNA_RUNG, width=2)
         )
 
-        # ================= STRAND 1 =================
-        t1 = ((z1 + 1) / 2) ** 1.6   # gamma for softer transition
-        size1 = 2.5 + 1.5 * t1
-        color1 = lerp_color(DNA_BACK_RGB, DNA_FRONT_RGB, t1)
+        # --- STRAND 1 ---
+        # Calculate size based on depth (z1)
+        # Objects in front (z>0) are bigger
+        t1 = ((z1 + 1) / 2) ** 1.6 
+        scale1 = (z1 + 1.5) / 2.5  # Result is approx 0.2 to 1.0
+        radius1 = 3 * scale1
+        
+        create_depth_glowing_dot(x, y1, radius1, t1)
 
-        for h in range(HALO_POINTS):
-            a = (2 * math.pi / HALO_POINTS) * h + phase * 0.3
-            r = HALO_RADIUS + halo_radius_offsets[(i, h, 1)]
-            hx = x + math.cos(a) * r
-            hy = y1 + math.sin(a) * r
-
-            dna_items.append(
-                canvas.create_oval(
-                    hx - 0.1, hy - 0.1,
-                    hx + 0.1, hy + 0.1,
-                    fill=HALO_COLOR,
-                    outline=""
-                )
-            )
-
-        dna_items.append(
-            canvas.create_oval(
-                x - size1, y1 - size1,
-                x + size1, y1 + size1,
-                fill=color1,
-                outline=""
-            )
-        )
-
-        # ================= STRAND 2 =================
+        # --- STRAND 2 ---
         t2 = ((z2 + 1) / 2) ** 1.6
-        size2 = 2.5 + 1.5 * t2
-        color2 = lerp_color(DNA_BACK_RGB, DNA_FRONT_RGB, t2)
+        scale2 = (z2 + 1.5) / 2.5
+        radius2 = 3 * scale2
+        
+        create_depth_glowing_dot(x, y2, radius2, t2)
 
-        for h in range(HALO_POINTS):
-            a = (2 * math.pi / HALO_POINTS) * h - phase * 0.3
-            r = HALO_RADIUS + halo_radius_offsets[(i, h, 2)]
-            hx = x + math.cos(a) * r
-            hy = y2 + math.sin(a) * r
 
-            dna_items.append(
-                canvas.create_oval(
-                    hx - 1, hy - 1,
-                    hx + 1, hy + 1,
-                    fill=HALO_COLOR,
-                    outline=""
-                )
-            )
+    # --- ANIMATE ---
+    phase += 0.035  # Slightly faster
+    root.after(30, draw_rotating_dna, cx, cy)
 
-        dna_items.append(
-            canvas.create_oval(
-                x - size2, y2 - size2,
-                x + size2, y2 + size2,
-                fill=color2,
-                outline=""
-            )
-        )
-
-    # ---------- animation step ----------
-    phase += 0.035
-    root.after(35, draw_rotating_dna, cx, cy)
 
 
 # ================= SCAN LINE =================

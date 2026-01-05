@@ -124,7 +124,7 @@ def init_halo_offsets(points):
 dna_items = []
 phase = 0.0
 
-def draw_rotating_dna(cx, cy, length=1500, amplitude=95, points=110): # 980, 95, 110
+def draw_rotating_dna(cx, cy, length=980, amplitude=95, points=110): 
     global phase, dna_items
 
     # ---------- helper for smooth color blending ----------
@@ -245,7 +245,7 @@ draw_grid()
 draw_hud_text()
 draw_results()
 
-draw_rotating_dna(WIDTH // 2 - 185 , HEIGHT // 2 -200 , points=POINTS)
+draw_rotating_dna(WIDTH // 2 + 50, HEIGHT // 2 -200  , points=POINTS)
 animate_scan()
 
 root.mainloop()
