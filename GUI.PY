@@ -663,7 +663,15 @@ def on_search_click():
     pat = searchpat.get()   
 
     matches = call_search_pattern(seq, pat)
-    print("Matches at indices:", matches)
+    text="Matches at indices:"+ str(matches)
+    canvas.create_text(
+        50, BOXEND+150,
+        text=text,
+        fill=TEXT_DIM,
+        font=("Consolas", 14),
+        anchor="w", tags = UI_TAG
+    )
+
 
 
 def on_maxrep_click():
@@ -671,8 +679,16 @@ def on_maxrep_click():
     x= int(x1.get())
     region, freq = call_max_repetition(seq, x)
 
-    print("Max repetition:", region)
-    print("Count:", freq)
+    text= "Max repetition:"+  region + "\nCount:"+ str(freq)
+
+    canvas.create_text(
+        BOX*2+50, BOXEND+150,
+        text=text,
+        fill=TEXT_DIM,
+        font=("Consolas", 14),
+        anchor="w", tags = UI_TAG
+    )
+
 
 
 
@@ -680,9 +696,17 @@ def on_unique_click():
     seq = dna_database[selectedseq]
     x = int(x2.get())
     regions = call_unique_region(seq,x)
-
+    text=""
     for r in regions:
-        print("Unique:", r)
+        text+="Unique:"+ r + "\n"
+
+    canvas.create_text(
+        BOX*3+50, BOXEND+150,
+        text=text,
+        fill=TEXT_DIM,
+        font=("Consolas", 14),
+        anchor="w", tags = UI_TAG
+    )
 
 
 def on_lcr_click():
@@ -690,7 +714,15 @@ def on_lcr_click():
     s2 = dna_database["B"]
 
     result = call_largest_common(s1, s2)
-    print("Largest common region:", result)
+    text="Largest common region:"+ result
+    canvas.create_text(
+        BOX+50, BOXEND+150,
+        text=text,
+        fill=TEXT_DIM,
+        font=("Consolas", 14),
+        anchor="w", tags = UI_TAG
+    )
+
 
 
 
@@ -734,6 +766,11 @@ create_canvas_button(
     text="Unique Region",
     command=on_unique_click
 )
+
+
+
+
+
 
 
 create_radio_group_ui()
