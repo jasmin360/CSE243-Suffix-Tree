@@ -129,10 +129,10 @@ CYAN_DIM = "#005555"
 GREEN = "#2f7f21"
 TEXT_DIM = "#a3f7ff"
 
-BoxTop=170
+BoxTop=150
 BoxBottom = 100
-BoxLeft= 30
-BoxRight=40
+BoxLeft= 180
+BoxRight=200
 
 DNA_FRONT = "#7fdfe3"
 DNA_BACK  = "#2f6f73"
@@ -306,7 +306,7 @@ def draw_bounding_box(points, pad_l, pad_r, pad_t, pad_b, color="#1b4f52", width
         )
         county += 1
 
-def draw_rotating_dna(cx, cy, length=1350, amplitude=130, points=110):
+def draw_rotating_dna(cx, cy, length=1000, amplitude=130, points=110):
     global phase, dna_items
 
     # --- CLEAR ---
@@ -658,57 +658,43 @@ input_label3 = tk.Label(
 input_label3.place(x=BOX *3 + 40, y=BOXEND+BASEEE)
 
 
+# ================= SCROLLABLE OUTPUT PANEL =================
 class OutputPanel:
     def __init__(self, parent, x, y, w, h, bg="#020508"):
-        self.bg = bg
-
         self.frame = tk.Frame(parent, bg=bg)
         self.frame.place(x=x, y=y, width=w, height=h)
 
-        # ---- Canvas ----
         self.canvas = tk.Canvas(
             self.frame,
             bg=bg,
-            highlightthickness=0,   # ← removes border
-            bd=0     
+            highlightthickness=0
         )
-        self.canvas.pack(fill="both", expand=True)
+        self.canvas.pack(side="left", fill="both", expand=True)
 
-        # ---- Inner content ----
+        self.scrollbar = tk.Scrollbar(
+            self.frame,
+            orient="vertical",
+            bg="#000000",              # main bar color
+            troughcolor="#001919",     # track color
+            activebackground="#000000",
+            command=self.canvas.yview
+        )
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
         self.inner = tk.Frame(self.canvas, bg=bg)
-        self.window_id = self.canvas.create_window(
+        self.canvas_window = self.canvas.create_window(
             (0, 0), window=self.inner, anchor="nw"
         )
 
-        # ---- Resize + scroll ----
-        self.inner.bind("<Configure>", self._update_scroll)
-        self.canvas.bind("<Configure>", self._resize_inner)
-
-        # ---- Mouse wheel (THIS IS SCROLLING) ----
-        self.canvas.bind("<Enter>", self._bind_mouse)
-        self.canvas.bind("<Leave>", self._unbind_mouse)
+        self.inner.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
 
         self.labels = []
-        self.wrap = w - 16
-
-    # ================= INTERNAL =================
-
-    def _update_scroll(self, event=None):
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
-    def _resize_inner(self, event):
-        self.canvas.itemconfig(self.window_id, width=event.width)
-
-    def _bind_mouse(self, event):
-        self.canvas.bind_all("<MouseWheel>", self._on_scroll)
-
-    def _unbind_mouse(self, event):
-        self.canvas.unbind_all("<MouseWheel>")
-
-    def _on_scroll(self, event):
-        self.canvas.yview_scroll(int(-event.delta / 120), "units")
-
-    # ================= PUBLIC =================
+        self.wrap = w - 20
 
     def clear(self):
         for lbl in self.labels:
@@ -721,10 +707,10 @@ class OutputPanel:
             self.inner,
             text=text,
             fg=color,
-            bg=self.bg,
+            bg=self.inner["bg"],
             font=("Consolas", 10),
-            wraplength=self.wrap,
             justify="left",
+            wraplength=self.wrap,
             anchor="w"
         )
         lbl.pack(anchor="w", pady=2)
