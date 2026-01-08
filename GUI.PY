@@ -8,12 +8,13 @@ import os
 
 
 dll_path = r"c:\New folder\ds project\CSE243-Suffix-Tree\dna.dll"
-
+CHIMPDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\CHIMPANZEE.txt"
 print("DLL PATH:", dll_path)
 print("EXISTS:", os.path.exists(dll_path))
 
 os.add_dll_directory(os.path.dirname(dll_path))
 dna = ctypes.CDLL(dll_path)
+
 print("DLL LOADED SUCCESSFULLY")
 
 # ================= FUNCTION SIGNATURES =================
@@ -162,7 +163,8 @@ UI_TAG  = "ui"
 
 dna_database = {
     "A": "Empty", 
-    "B": "Empty"
+    "B": "Empty",
+    "chimpanzee": "Empty"
 }
 
 # ================= GRID =================
@@ -191,12 +193,15 @@ def draw_hud_text():
         font=("Consolas", 10),
         anchor="w", tags = UI_TAG
     )
-
+    
     y = 130
+    chimp = loadexistingfile(CHIMPDNA, "chimpanzee")
+    chimplargestcommon, count= call_max_repetition(chimp,3)
+    chimptext=count
     for i in range(6):
         canvas.create_text(
             40, y,
-            text=f"GT_AC_{i+5}   ::  {random.randint(1000,9999)}.{random.randint(10,99)}",
+            text=chimptext,
             fill=TEXT_DIM,
             font=("Consolas", 9),
             anchor="w", tags= UI_TAG
@@ -207,7 +212,7 @@ def draw_hud_text():
 
 def draw_results():
     canvas.create_text(
-        40, 500,
+        40, 400,
         text="ANALYSIS OUTPUT",
         fill=CYAN,
         font=("Consolas", 14),
@@ -222,7 +227,7 @@ def draw_results():
         "Execution Time     : 0.0021s"
     ]
 
-    y = 530
+    y = 430
     for r in results:
         canvas.create_text(
             40, y,
@@ -526,6 +531,20 @@ def loadfile(target):
             
         except Exception as e:
             print(f"ERROR: Could not read file. {e}")
+def loadexistingfile(path, target):
+    if os.path.exists(path):
+        try:
+            with open(path, 'r') as f:
+                content = f.read().strip()
+                dna_database[target] = content
+                    
+            print(f"SYSTEM: Loaded {len(content)} chars into SEQUENCE {target}")
+            print(f"PREVIEW: {content[:100]}...")
+            return content
+
+        except Exception as e:
+            print(f"ERROR: Could not read file. {e}")
+
 def create_radio_group_ui():
     start_x = 1380
     start_y = 80
