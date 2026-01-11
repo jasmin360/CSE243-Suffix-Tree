@@ -39,7 +39,7 @@ public:
     int countLeaves(Node* node);
     string findLargestCommonRegion(const string s1, const string s2);
     void findUniqueRegion(Node* node, int x, int currentLength,
-    string* arr, int& index, string& currentPath);
+    string* arr, int& index, string currentPath);
     void dfs_LCS(Node* node, int s1Length, string& concatenatedText, int pathLen, 
              bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
              string& LCS, string currentPath);
