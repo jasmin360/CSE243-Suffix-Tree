@@ -190,7 +190,7 @@ def draw_grid():
 def commonseq(data):
     if dna_database[selectedseq] != "Empty" and data!=None:
         x= call_largest_common(data,dna_database[selectedseq])
-        lcper= str(len(x)/len(dna_database[selectedseq])*100)+"%"
+        lcper= str(round(len(x)/len(dna_database[selectedseq])*100, 5))+"%"
         return lcper
     else:
         return "..."
@@ -867,6 +867,9 @@ def on_search_click():
     if not pat:
         out_search.write("ERROR: Empty pattern", "#ff6666")
         return
+    if seq == "Empty":
+        out_search.write("ERROR: No sequence Input", "#ff6666")
+        return
 
     matches = call_search_pattern(seq, pat)
 
@@ -884,6 +887,15 @@ def on_maxrep_click():
     out_maxrep.clear()
 
     seq = dna_database[selectedseq]
+    
+    if seq == "Empty":
+        out_maxrep.write("ERROR: No sequence Input", "#ff6666")
+        return 
+
+    if x1.get()=='':
+        out_maxrep.write("ERROR: Empty Length", "#ff6666")
+        return
+    
     x = int(x1.get())
 
     region, count = call_max_repetition(seq, x)
@@ -897,6 +909,16 @@ def on_unique_click():
     out_unique.clear()
 
     seq = dna_database[selectedseq]
+
+    if seq == "Empty":
+        out_unique.write("ERROR: No sequence Input", "#ff6666")
+        return
+    
+
+    if x2.get()=='':
+        out_unique.write("ERROR: Empty Length", "#ff6666")
+        return
+    
     x = int(x2.get())
 
     regions = call_unique_region(seq, x)
@@ -913,7 +935,9 @@ def on_lcr_click():
 
     s1 = dna_database["A"]
     s2 = dna_database["B"]
-
+    if s1 == "Empty" or s2== "Empty":
+        out_lcr.write("ERROR: No sequence Input", "#ff6666")
+        return
     res = call_largest_common(s1, s2)
 
     out_lcr.write("Largest Common Region:", "#00ffff")
