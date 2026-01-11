@@ -39,13 +39,13 @@ public:
     int countLeaves(Node* node);
     string findLargestCommonRegion(const string s1, const string s2);
     void findUniqueRegion(Node* node, int x, int currentLength,
-    string* arr, int& index, string currentPath);
+    string* arr, int& index, string& currentPath);
     void dfs_LCS(Node* node, int s1Length, string& concatenatedText, int pathLen, 
              bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
              string& LCS, string currentPath);
     void collectLeafIndices(Node* node, int*& arr, int& count, int& capacity);
     void findMaxRepetition(Node* node, int x, int& count,
-    int currentLength, string currentPath, string& res);
+    int currentLength, string& currentPath, string& res);
 
     class ActivePoint{
     public:
