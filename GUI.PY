@@ -197,7 +197,7 @@ def commonseq(data):
 
 def pat(data):
     if dna_database[selectedseq] != "Empty":
-        return call_search_pattern(dna_database[selectedseq], data)
+        return len(call_search_pattern(dna_database[selectedseq], data))
     else:
         return "..."
     
@@ -280,7 +280,7 @@ def animal_hud_text():
         "G count: " + str(G),
         "C count: " + str(C)  ,
         "T count: " + str(T),
-        "Tree Nodes: " + length()
+        "Tree Nodes: " + str(length())
     ]
 
     y = y+100 +140
