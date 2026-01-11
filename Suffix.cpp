@@ -24,12 +24,12 @@ Suffix::End::End(int end)
 Suffix::End::~End() {}
 
 // --- Node Class Implementation ---
-Suffix::Node::Node(int i, End* e)
+Suffix::Node::Node(int i, End *e)
 {
     suffixLink = nullptr;
-    index = -1; // -1 indicates it's not a leaf node
-    start = i;  // start index of edge
-    end = e;    // end of edge, global end for leaf node
+    index = -1;    // -1 indicates it's not a leaf node
+    start = i;     // start index of edge
+    end = e;       // end of edge, global end for leaf node
     leafCount = 0; // number of leaves under this node
     for (int k = 0; k < 6; k++)
     { // initialize all children to null
@@ -40,7 +40,7 @@ Suffix::Node::Node(int i, End* e)
 Suffix::Node::~Node() {}
 
 // --- ActivePoint Class Implementation ---
-Suffix::ActivePoint::ActivePoint(Node* node)
+Suffix::ActivePoint::ActivePoint(Node *node)
 {
     activeNode = node; // starts at root
     activeEdge = -1;   // -1 indicates no active edge
@@ -60,127 +60,133 @@ void Suffix::makeSuffixTree(string str)
     }
 }
 
- void Suffix::startPhase(int i)
- {                                  // function per phase/ char
-     Node* lastnode = NULL; // to store last created internal node (from previous phase) for suffix link
-     globalEnd->end = i;      // increment global end for rule 1 extension for leaves
-     remaining++;           // increment remaining suffix count
+void Suffix::startPhase(int i)
+{                          // function per phase/ char
+    Node *lastnode = NULL; // to store last created internal node (from previous phase) for suffix link
+    globalEnd->end = i;    // increment global end for rule 1 extension for leaves
+    remaining++;           // increment remaining suffix count
 
-     while (remaining > 0)
-     { // while there are suffixes to be added
-         if (activepoint->activelength == 0)
-         { // if active length is 0
+    while (remaining > 0)
+    { // while there are suffixes to be added
+        if (activepoint->activelength == 0)
+        { // if active length is 0
 
-             if (activepoint->activeNode->child[getIndex(text[i])] != nullptr)
-             {
-                 // RULE 3 EXTENSION!! SHOWSTOPPER
-                 activepoint->activeEdge = i; // set active edge to current char index
-                 activepoint->activelength ++; // increment active length
-                 if (lastnode != NULL )
-                 {                                                                       // if there is a last created internal node
-                     lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
-                     lastnode = NULL;        // remove last node since suffix link is already created
-                 }
-                 break;
+            if (activepoint->activeNode->child[getIndex(text[i])] != nullptr)
+            {
+                // RULE 3 EXTENSION!! SHOWSTOPPER
+                activepoint->activeEdge = i; // set active edge to current char index
+                activepoint->activelength++; // increment active length
+                if (lastnode != NULL)
+                {                                                   // if there is a last created internal node
+                    lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
+                    lastnode = NULL;                                // remove last node since suffix link is already created
+                }
+                break;
+            }
+            else
+            {
+                // RULE 2 EXTENSION
+                Node *node = new Node(i, globalEnd);                      // create new leaf node
+                node->index = i - remaining + 1;                          // set index to the suffix starting index
+                activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
+                remaining--;                                              // decrement remaining suffix count
 
-             }
-             else
-             {
-                 // RULE 2 EXTENSION
-                 Node* node = new Node(i, globalEnd);                                          // create new leaf node
-                 node->index = i - remaining + 1;                                                // set index to the suffix starting index
-                 activepoint->activeNode->child[getIndex(text[i])] = node; // add it to active node's children
-                 remaining--;                                                                  // decrement remaining suffix count
+                if (lastnode != NULL)
+                {                                                   // if there is a last created internal node
+                    lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
+                    lastnode = NULL;                                // remove last node since suffix link is already created
+                }
+                if (activepoint->activeNode != root)
 
-                 if (lastnode != NULL)
-                 {                                                                       // if there is a last created internal node
-                     lastnode->suffixLink = activepoint->activeNode; // connect suffix link to current active node
-                     lastnode = NULL;                                        // remove last node since suffix link is already created
-                 }
-                 if (activepoint->activeNode != root)
+                { // if active node is not root
+                    if (activepoint->activeNode->suffixLink != nullptr)
+                    {                                                                  // does active node have a suffix link?
+                        activepoint->activeNode = activepoint->activeNode->suffixLink; // set active node to its suffix link
+                    }
+                    else
+                        activepoint->activeNode = root;
+                    activepoint->activeEdge++; // increment active edge
+                                               // follow suffix link, where active node becomes the suffix linked node of current node
+                }
+                else
+                {
+                    activepoint->activeEdge++; // set active edge to next suffix's first character
+                    if (activepoint->activelength > 0)
+                        activepoint->activelength--; // decrement active length
+                }
+            }
+        }
+        else
+        { // if active length is NOT 0
 
-                 { // if active node is not root
-                     if (activepoint->activeNode->suffixLink != nullptr) {  // does active node have a suffix link?
-                         activepoint->activeNode = activepoint->activeNode->suffixLink; // set active node to its suffix link
-                     }
-                     else activepoint->activeNode = root;
-			        activepoint->activeEdge++; // increment active edge
-                     // follow suffix link, where active node becomes the suffix linked node of current node
-                 }
-                 else {
-                     activepoint->activeEdge++; // set active edge to next suffix's first character
-                     if (activepoint->activelength > 0) activepoint->activelength--;                  // decrement active length
-                 }
-             }
-         }
-         else
-         { // if active length is NOT 0
+            int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
+            Node *oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
 
-             int currentedge = getIndex(text[activepoint->activeEdge]);   // get index of active edge character
-             Node* oldnode = activepoint->activeNode->child[currentedge]; // node of current active edge
+            // WALKDOWN
+            int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
+            if (activepoint->activelength >= edgeLen)
+            { // if active length is greater than or equal to edge length
+                // move active point down the tree
+                activepoint->activeEdge += edgeLen;   // move active edge forward by edge length
+                activepoint->activelength -= edgeLen; // decrease active length by edge length
+                activepoint->activeNode = oldnode;    // set active node to node of current active edge
+                continue;
+            }
 
-             // WALKDOWN
-             int edgeLen = oldnode->end->end - oldnode->start + 1; // length of current edge (edge len = end_of_node - start_of_node +1)
-             if (activepoint->activelength >= edgeLen)
-             { // if active length is greater than or equal to edge length
-                 // move active point down the tree
-                 activepoint->activeEdge += edgeLen;   // move active edge forward by edge length
-                 activepoint->activelength -= edgeLen; // decrease active length by edge length
-                 activepoint->activeNode = oldnode;    // set active node to node of current active edge
-                 continue;
-             }
+            if (text[oldnode->start + activepoint->activelength] == text[i])
+            { // next char on edge matches current char
+                // RULE 3 EXTENSION!! SHOWSTOPPER
 
-             if (text[oldnode->start + activepoint->activelength] == text[i])
-             { // next char on edge matches current char
-                 // RULE 3 EXTENSION!! SHOWSTOPPER
+                if (lastnode != NULL)
+                {                                                   // if there is a last created internal node
+                    lastnode->suffixLink = activepoint->activeNode; // make the suffix link of last node be the current active node
+                    lastnode = NULL;                                // remove last node since suffix link is already created
+                }
 
-                 if (lastnode != NULL)
-                 {                                                                       // if there is a last created internal node
-                     lastnode->suffixLink = activepoint->activeNode; // make the suffix link of last node be the current active node
-                     lastnode = NULL;                                // remove last node since suffix link is already created
-                 }
+                activepoint->activelength++; // increment active length
+                break;
+            }
+            else
+            { // next char on edge DOES NOT matche current char
 
-                 activepoint->activelength++; // increment active length
-                 break;
-             }
-             else
-             { // next char on edge DOES NOT matche current char
+                // split edge
+                // RULE 2 EXTENSION
 
-                 // split edge
-                 // RULE 2 EXTENSION
+                End *currentend = new End(activepoint->activelength + oldnode->start - 1); // end for current edge after split = active length + start of old node -1
+                Node *splitnot = new Node(oldnode->start, currentend);                     // new internal node created for the split edge
+                Node *newnode = new Node(i, globalEnd);                                    // new leaf node for current character
+                newnode->index = i - remaining + 1;                                        // set index to current string ID
+                activepoint->activeNode->child[currentedge] = splitnot;                    // replace old edge with split node just created
+                oldnode->start += activepoint->activelength;                               // update start of old node to be after split node inserted (currentend + 1)
+                splitnot->child[getIndex(text[i])] = newnode;                              // add new leaf node as child of split internal node just created
+                splitnot->child[getIndex(text[oldnode->start])] = oldnode;                 // reattach the old child node as child of split internal node just created (after editing its start to reflect the end of split node)
 
-                 End* currentend = new End(activepoint->activelength + oldnode->start - 1); // end for current edge after split = active length + start of old node -1
-                 Node* splitnot = new Node(oldnode->start, currentend);                      // new internal node created for the split edge
-                 Node* newnode = new Node(i, globalEnd);                                     // new leaf node for current character
-                 newnode->index = i - remaining + 1;                                           // set index to current string ID
-                 activepoint->activeNode->child[currentedge] = splitnot;                     // replace old edge with split node just created
-                 oldnode->start += activepoint->activelength;                                // update start of old node to be after split node inserted (currentend + 1)
-                 splitnot->child[getIndex(text[i])] = newnode;                               // add new leaf node as child of split internal node just created
-                 splitnot->child[getIndex(text[oldnode->start])] = oldnode;                  // reattach the old child node as child of split internal node just created (after editing its start to reflect the end of split node)
+                if (lastnode != NULL)
+                {                                    // if there is a last created internal node
+                    lastnode->suffixLink = splitnot; // connect suffix link to the current split node from last internal node created
+                }
 
-                 if (lastnode != NULL)
-                 {                                            // if there is a last created internal node
-                     lastnode->suffixLink = splitnot; // connect suffix link to the current split node from last internal node created
-                 }
+                lastnode = splitnot; // update last created internal node to current split node
+                remaining--;         // decrement suffix count remaining
 
-                 lastnode = splitnot; // update last created internal node to current split node
-                 remaining--;         // decrement suffix count remaining
+                if (activepoint->activeNode == root)
+                {                                // if active node is root
+                    activepoint->activeEdge++;   // increment active edge
+                    activepoint->activelength--; // decrement active length
+                }
+                else
+                {
+                    if (activepoint->activeNode->suffixLink != nullptr)
+                        activepoint->activeNode = activepoint->activeNode->suffixLink;
+                    else
+                        activepoint->activeNode = root;
+                }
+            }
+        }
+    }
+}
 
-                 if (activepoint->activeNode == root)
-                 {                                        // if active node is root
-                     activepoint->activeEdge ++;   // increment active edge
-                     activepoint->activelength--; // decrement active length
-                 }
-                 else {
-                     if (activepoint->activeNode->suffixLink != nullptr) activepoint->activeNode = activepoint->activeNode->suffixLink;
-                     else activepoint->activeNode = root;
-                 }
-             }
-         }
-     }
- }
-
-Suffix::Node* Suffix::getNode(int index)
+Suffix::Node *Suffix::getNode(int index)
 {
     switch (text[index])
     {
@@ -238,29 +244,35 @@ int Suffix::getIndex(char c)
         hasSuffixFromS2 = false;
         return;
     }
-    
+
     // If this is a leaf node
     if (node->index != -1) {
         if (node->index < s1Length) {
             hasSuffixFromS1 = true;
             hasSuffixFromS2 = false;
-        } else if (node->index > s1Length) {
+        }
+        else if (node->index > s1Length)
+        {
             hasSuffixFromS1 = false;
             hasSuffixFromS2 = true;
-        } else {
+        }
+        else
+        {
             // Suffix starts at separator '$'
             hasSuffixFromS1 = false;
             hasSuffixFromS2 = false;
         }
         return;
     }
-    
+
     bool foundinS1 = false;
     bool foundinS2 = false;
-    
+
     // Process all children
-    for (int i = 0; i < 6; i++) {
-        if (node->child[i] == nullptr) {
+    for (int i = 0; i < 6; i++)
+    {
+        if (node->child[i] == nullptr)
+        {
             continue;
         }
         
@@ -284,31 +296,36 @@ int Suffix::getIndex(char c)
         if (childHasSuffixFromS1) {
             foundinS1 = true;
         }
-        if (childHasSuffixFromS2) {
+        if (childHasSuffixFromS2)
+        {
             foundinS2 = true;
         }
     }
-    
+
     // AFTER processing all children, check if this node represents a common substring
-    if (foundinS1 && foundinS2) {
-        if (pathLen > maxLength) {
+    if (foundinS1 && foundinS2)
+    {
+        if (pathLen > maxLength)
+        {
             maxLength = pathLen;
             LCS = currentPath;
         }
     }
-    
+
     hasSuffixFromS1 = foundinS1;
     hasSuffixFromS2 = foundinS2;
 }
 
-string Suffix::findLargestCommonRegion(const string s1, const string s2) {
+string Suffix::findLargestCommonRegion(const string s1, const string s2)
+{
     text = s1 + '$' + s2 + '#';
     buildGST(text);
-    
-    if (root == nullptr || text.empty()) {
+
+    if (root == nullptr || text.empty())
+    {
         return "";
     }
-    
+
     string LCS = "";
     int maxLength = 0;
     bool hasSuffixFromS1 = false;
@@ -321,63 +338,63 @@ string Suffix::findLargestCommonRegion(const string s1, const string s2) {
     return LCS;
 }
 
-int* Suffix::searchPattern(const std::string& pattern, int& count)
-{ // function to search for pattern in a DNA sequence
-	Node* current = root; // start at root
-	int i = 0; // i is the index of pattern being matched
+int *Suffix::searchPattern(const std::string &pattern, int &count)
+{                         // function to search for pattern in a DNA sequence
+    Node *current = root; // start at root
+    int i = 0;            // i is the index of pattern being matched
 
-	while (i < pattern.length()) // while there are still characters left in pattern to match
+    while (i < pattern.length()) // while there are still characters left in pattern to match
     {
-		int idx = getIndex(pattern[i]); // get index of current character in pattern
-		if (idx == -1 || current->child[idx] == nullptr) // if index is not a character code or character not found 
-			return nullptr; // pattern not found
+        int idx = getIndex(pattern[i]);                  // get index of current character in pattern
+        if (idx == -1 || current->child[idx] == nullptr) // if index is not a character code or character not found
+            return nullptr;                              // pattern not found
 
-		Node* next = current->child[idx]; // move to child node corresponding to current character
-		int edgeLen = next->end->end - next->start + 1;  //calculate length of edge
+        Node *next = current->child[idx];               // move to child node corresponding to current character
+        int edgeLen = next->end->end - next->start + 1; // calculate length of edge
 
         for (int j = 0; j < edgeLen && i < pattern.length(); j++, i++)
         {
-			if (text[next->start + j] != pattern[i]) // if character on edge does not match pattern character
-				return nullptr; // pattern not found
+            if (text[next->start + j] != pattern[i]) // if character on edge does not match pattern character
+                return nullptr;                      // pattern not found
         }
-		current = next;  // move to next node
+        current = next; // move to next node
     }
 
-	int capacity = 100;  // initial capacity for result array
-	int* result = new int[capacity]; // array to store leaf indices
+    int capacity = 100;              // initial capacity for result array
+    int *result = new int[capacity]; // array to store leaf indices
     count = 0;
 
-	collectLeafIndices(current, result, count, capacity); // collect leaf indices under current node
+    collectLeafIndices(current, result, count, capacity); // collect leaf indices under current node
     return result;
 }
 
-void Suffix::collectLeafIndices(Node* node, int*& arr, int& count, int& capacity)
-{// Function to collect leaf indices under a given node
-	if (!node) // if node is null, do nothing
+void Suffix::collectLeafIndices(Node *node, int *&arr, int &count, int &capacity)
+{              // Function to collect leaf indices under a given node
+    if (!node) // if node is null, do nothing
         return;
 
-	if (node->index != -1) // if node is a leaf node
+    if (node->index != -1) // if node is a leaf node
     {
-		if (count == capacity) // resize array if capacity is reached
+        if (count == capacity) // resize array if capacity is reached
         {
             capacity *= 2;
-            int* newArr = new int[capacity];
+            int *newArr = new int[capacity];
             for (int i = 0; i < count; i++)
                 newArr[i] = arr[i];
             delete[] arr;
             arr = newArr;
         }
-		arr[count++] = node->index; // add leaf index to result array
+        arr[count++] = node->index; // add leaf index to result array
         return;
     }
 
-	for (int i = 0; i < 5; i++) // for all possible children
+    for (int i = 0; i < 5; i++) // for all possible children
     {
-		collectLeafIndices(node->child[i], arr, count, capacity); // recursively collect leaf indices from children
+        collectLeafIndices(node->child[i], arr, count, capacity); // recursively collect leaf indices from children
     }
 }
 
-int Suffix::countLeaves(Node* node)
+int Suffix::countLeaves(Node *node)
 { // function to compute leaf count for each node
 
     if (node == NULL)
@@ -389,47 +406,47 @@ int Suffix::countLeaves(Node* node)
         node->leafCount = 1;
         return 1;
     }
-    int sum = 0;                        // sum to store total leaf count from all children
-    for (int i = 0; i < 6; i++)         // for all possible children per node
+    int sum = 0;                            // sum to store total leaf count from all children
+    for (int i = 0; i < 6; i++)             // for all possible children per node
         sum += countLeaves(node->child[i]); // recursively compute leaf count for each child and add to sum
 
     node->leafCount = sum; // set leaf count of current node to sum of leaf counts of all its children
     return sum;
 }
 
-void Suffix::findUniqueRegion(Node* node, int x, int currentLength, string* arr, int& index, string& currentPath)
+void Suffix::findUniqueRegion(Node *node, int x, int currentLength, string *arr, int &index, string &currentPath)
 {
-    if (!node || index >= 3) //if node is null or the ouput is full 
+    if (!node || index >= 3) // if node is null or the ouput is full
         return;
 
     for (int i = 0; i < 6; i++) // for all possible children
     {
-        Node* child = node->child[i]; // get child node
-        if (!child) // if child node is null, continue to next child
+        Node *child = node->child[i]; // get child node
+        if (!child)                   // if child node is null, continue to next child
             continue;
 
-        int edgeLen = child->end->end - child->start + 1; //length of current edge (from node to child)
-        int newLength = currentLength + edgeLen; // new length after including this edge
+        int edgeLen = child->end->end - child->start + 1; // length of current edge (from node to child)
+        int newLength = currentLength + edgeLen;          // new length after including this edge
 
         long long oldSize = currentPath.size(); // the size of currentpath is stored before appending the new edge labels
-        //so it can be restored when recursing
+        // so it can be restored when recursing
 
-        currentPath.append(text, child->start, edgeLen); //appends edge label of current child node (path built incrementally)
+        currentPath.append(text, child->start, edgeLen); // appends edge label of current child node (path built incrementally)
 
         if (child->leafCount == 1 &&
             currentLength < x && newLength >= x &&
             index < 3) // if current length is less than x and new length is greater than or equal to x and the output array index is less than 3
         {
-            //when leaf count is 1, the substring occurs exactly once and therefore is unique
-            //current length and new length conditions just verify that length x is crossed
+            // when leaf count is 1, the substring occurs exactly once and therefore is unique
+            // current length and new length conditions just verify that length x is crossed
 
             // to capture substrings of EXACT length x, which happens when BOTH
             // before adding this edge, the path was SHORTER than x
             // after adding this edge, the path becomes >= x
 
-            //index 3 condition is to store at most 3 results
+            // index 3 condition is to store at most 3 results
 
-            string test = currentPath.substr(0, x); //candidate substring for unique region
+            string test = currentPath.substr(0, x); // candidate substring for unique region
 
             if (test.find('$') == string::npos) // only allow substrings that DO NOT have a $ to be outputed
             {
@@ -439,33 +456,32 @@ void Suffix::findUniqueRegion(Node* node, int x, int currentLength, string* arr,
 
         findUniqueRegion(child, x, newLength, arr, index, currentPath);
 
-        currentPath.resize(oldSize); //restores path to previous size
+        currentPath.resize(oldSize); // restores path to previous size
     }
 }
 
-void Suffix::findMaxRepetition(Node* node, int x, int& count,
-    int currentLength, string& currentPath, string& res)
+void Suffix::findMaxRepetition(Node *node, int x, int &count,
+                               int currentLength, string &currentPath, string &res)
 {
-    if (!node) //if node is null, return
+    if (!node) // if node is null, return
 
         return;
 
     for (int i = 0; i < 6; i++) // for all possible children
     {
-        Node* child = node->child[i]; // get child node
-        if (!child) // if child node is null, continue to next child
+        Node *child = node->child[i]; // get child node
+        if (!child)                   // if child node is null, continue to next child
             continue;
 
-        int edgeLen = child->end->end - child->start + 1; //length of current edge (from node to child)
-        int newLength = currentLength + edgeLen; // new length after including this edge
+        int edgeLen = child->end->end - child->start + 1; // length of current edge (from node to child)
+        int newLength = currentLength + edgeLen;          // new length after including this edge
 
         long long oldSize = currentPath.size(); // the size of currentpath is stored before appending the new edge labels
-        //so it can be restored when recursing
+        // so it can be restored when recursing
 
-        currentPath.append(text, child->start, edgeLen); //appends edge label of current child node (path built incrementally)
+        currentPath.append(text, child->start, edgeLen); // appends edge label of current child node (path built incrementally)
 
-
-        if (currentLength < x && newLength >= x) //current length and new length conditions just verify that length x is crossed
+        if (currentLength < x && newLength >= x) // current length and new length conditions just verify that length x is crossed
         {
             // to capture substrings of EXACT length x, which happens when BOTH
             // before adding this edge, the path was SHORTER than x
