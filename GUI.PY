@@ -863,6 +863,7 @@ def on_search_click():
 
     seq = dna_database[selectedseq]
     pat = searchpat.get()
+    pat= pat.upper()
 
     if not pat:
         out_search.write("ERROR: Empty pattern", "#ff6666")
@@ -923,10 +924,13 @@ def on_unique_click():
 
     regions = call_unique_region(seq, x)
 
+
     out_unique.write(f"Unique Regions (length={x}):", "#00ffff")
     for r in regions:
         if r:
             out_unique.write(f"• {r}")
+        else:
+            out_unique.write("ERROR: no matches found", "#ff6666")
 
 
 
