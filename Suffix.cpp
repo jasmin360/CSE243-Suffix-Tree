@@ -223,8 +223,8 @@ int Suffix::getIndex(char c)
 //the new lcs with string implemetation
     void Suffix::buildGST(const string concatedText) {
         this->text = concatedText; // concated text
-
-        for (int i = 0; i < (int)text.length(); i++) {  //insert the whole text into suffix tree
+        int num = text.length();
+        for (int i = 0; i < num; i++) {  //insert the whole text into suffix tree
             startPhase(i);
         } 
     }
