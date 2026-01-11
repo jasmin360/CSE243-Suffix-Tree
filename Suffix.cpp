@@ -226,51 +226,28 @@ int Suffix::getIndex(char c)
     return -1;
 }
 
-// the new lcs with string implemetation
-void Suffix::buildGST(const string concatedText)
-{
-    this->text = concatedText; // concated text
-    int num = text.length();
-    for (int i = 0; i < num; i++)
-    { // insert the whole text into suffix tree
-        startPhase(i);
-    }
-}
+//the new lcs with string implemetation
+    void Suffix::buildGST(const string concatedText) {
+        this->text = concatedText; // concated text
+        int num = text.length();
+        for (int i = 0; i < num; i++) {  //insert the whole text into suffix tree
+            startPhase(i);
+        } 
+    } 
 
-// THE EDITS THAT I HAVE MADE ARE BELOWWWWWWWWWWWWWWWWWW
-int Suffix::edgeLength(Node *node)
-{
-    // No node or Root node has no incoming edge then length is 0
-    if (node == nullptr || node->end == nullptr)
-    {
-        return 0;
-    }
-    // Length of edge label = end - start + 1
-    return node->end->end - node->start + 1;
-}
-
-bool Suffix::isLeaf(Node *node)
-{
-    return (node->index != -1); // checks if the index is not -1 to determine if it's a leaf
-}
-
-void Suffix::dfs_LCS(Node *node, int s1Length, string &concatenatedText, int pathLen,
-                     bool &hasSuffixFromS1, bool &hasSuffixFromS2, int &maxLength,
-                     string &LCS, string currentPath)
-{
-
-    if (node == nullptr)
-    {
+    void Suffix::dfs_LCS(Node* node, int s1Length, string& concatenatedText, int pathLen, 
+             bool& hasSuffixFromS1, bool& hasSuffixFromS2, int& maxLength, 
+             string& LCS, string& currentPath) {
+    
+    if (node == nullptr) {
         hasSuffixFromS1 = false;
         hasSuffixFromS2 = false;
         return;
     }
 
     // If this is a leaf node
-    if (isLeaf(node))
-    {
-        if (node->index < s1Length)
-        {
+    if (node->index != -1) {
+        if (node->index < s1Length) {
             hasSuffixFromS1 = true;
             hasSuffixFromS2 = false;
         }
@@ -298,22 +275,25 @@ void Suffix::dfs_LCS(Node *node, int s1Length, string &concatenatedText, int pat
         {
             continue;
         }
+        
+        Node* child = node->child[i];
+        int edgeLen = child->end->end - child->start + 1;
+        
+        long long oldSize = currentPath.size(); // the size of currentpath is stored before appending the new edge labels
+        //so it can be restored when recursing
 
-        Node *child = node->child[i];
-        int edgeLen = edgeLength(child);
+        currentPath.append(text, child->start, edgeLen); //appends edge label of current child node (path built incrementally)
 
-        // Build the edge string
-        string edgeString = concatenatedText.substr(child->start, edgeLen);
-        string childPath = currentPath + edgeString;
-
+        
         bool childHasSuffixFromS1 = false;
         bool childHasSuffixFromS2 = false;
-
-        dfs_LCS(child, s1Length, concatenatedText, pathLen + edgeLen,
-                childHasSuffixFromS1, childHasSuffixFromS2, maxLength, LCS, childPath);
-
-        if (childHasSuffixFromS1)
-        {
+        
+        dfs_LCS(child, s1Length, concatenatedText, pathLen + edgeLen, 
+                childHasSuffixFromS1, childHasSuffixFromS2, maxLength, LCS, currentPath);
+        
+        currentPath.resize(oldSize); //restores path to previous size
+        
+        if (childHasSuffixFromS1) {
             foundinS1 = true;
         }
         if (childHasSuffixFromS2)
@@ -350,10 +330,11 @@ string Suffix::findLargestCommonRegion(const string s1, const string s2)
     int maxLength = 0;
     bool hasSuffixFromS1 = false;
     bool hasSuffixFromS2 = false;
-
-    dfs_LCS(root, s1.length(), text, 0, hasSuffixFromS1, hasSuffixFromS2,
-            maxLength, LCS, "");
-
+    string currentPath = "";
+    
+    dfs_LCS(root, s1.length(), text, 0, hasSuffixFromS1, hasSuffixFromS2, 
+            maxLength, LCS, currentPath);
+    
     return LCS;
 }
 
