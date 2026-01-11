@@ -371,10 +371,11 @@ int *Suffix::searchPattern(const std::string &pattern, int &count)
         Node *next = current->child[idx];               // move to child node corresponding to current character
         int edgeLen = next->end->end - next->start + 1; // calculate length of edge
 
-        for (int j = 0; j < edgeLen && i < pattern.length(); j++, i++)
+        for (int j = 0; j < edgeLen && i < pattern.length(); j++)
         {
             if (text[next->start + j] != pattern[i]) // if character on edge does not match pattern character
                 return nullptr;                      // pattern not found
+            i++;
         }
         current = next; // move to next node
     }
