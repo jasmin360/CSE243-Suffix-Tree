@@ -8,7 +8,12 @@ import os
 
 
 dll_path = r"c:\New folder\ds project\CSE243-Suffix-Tree\dna.dll"
-CHIMPDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\CHIMPANZEE.txt"
+CHIMPDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\CHIMPANZEE.txt"
+FISHDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\FISH.txt"
+DUCKDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\DUCK.txt"
+WORMDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\WORM.txt"
+BACTERIADNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\BACTERIA.txt"
+
 print("DLL PATH:", dll_path)
 print("EXISTS:", os.path.exists(dll_path))
 
@@ -160,11 +165,16 @@ canvas.pack(fill="both", expand=True)
 
 DNA_TAG = "dna"
 UI_TAG  = "ui"
+HUD_TAG = "hud"
 
 dna_database = {
     "A": "Empty", 
     "B": "Empty",
-    "chimpanzee": "Empty"
+    "chimpanzee": "Empty",
+    "fish": "Empty",
+    "duck": "Empty",
+    "worm": "Empty",
+    "bacteria": "Empty"
 }
 
 # ================= GRID =================
@@ -176,6 +186,124 @@ def draw_grid():
         canvas.create_line(0, y, WIDTH, y, fill=BG_GRID, tags= UI_TAG)
 
 # ================= HUD =================
+
+def commonseq(data):
+    if dna_database[selectedseq] != "Empty" and data!=None:
+        x= call_largest_common(data,dna_database[selectedseq])
+        lcper= str(len(x)/len(dna_database[selectedseq])*100)+"%"
+        return lcper
+    else:
+        return "..."
+
+def pat(data):
+    if dna_database[selectedseq] != "Empty":
+        return call_search_pattern(dna_database[selectedseq], data)
+    else:
+        return "..."
+    
+def length():
+    if dna_database[selectedseq] != "Empty":
+        return len(dna_database[selectedseq])
+    else:
+        return "..."
+    
+
+def animal_hud_text():
+    y=135
+    canvas.delete(HUD_TAG)
+
+    chimp = loadexistingfile(CHIMPDNA, "chimpanzee")
+    chimpper = "Chimpanzee: " + commonseq(chimp)
+
+    fish = loadexistingfile(FISHDNA, "fish")
+    fishper = "Fish: " + commonseq(fish)
+
+    duck = loadexistingfile(DUCKDNA, "duck")
+    duckper = "Duck: " + commonseq(duck)
+
+    worm = loadexistingfile(WORMDNA, "worm")
+    wormper = "Worm: " + commonseq(worm)
+
+    bacteria = loadexistingfile(BACTERIADNA, "bacteria")
+    bacteriaper = "Bacteria: " + commonseq(bacteria)
+ 
+    canvas.create_text(
+        20, y-5,
+        text= "Largest common sequence percentage:",
+        fill=TEXT_DIM,
+        font=("Consolas", 9),
+        anchor="w", tags= HUD_TAG
+    )
+    canvas.create_text(
+        40, y+20,
+        text= chimpper ,
+        fill=TEXT_DIM,
+        font=("Consolas", 9),
+        anchor="w", tags= HUD_TAG
+    )
+    canvas.create_text(
+        40, y+40,
+        text= fishper ,
+        fill=TEXT_DIM,
+        font=("Consolas", 9),
+        anchor="w", tags= HUD_TAG
+    )
+    canvas.create_text(
+        40, y+60,
+        text= duckper ,
+        fill=TEXT_DIM,
+        font=("Consolas", 9),
+        anchor="w", tags= HUD_TAG
+    )
+    canvas.create_text(
+        40, y+80,
+        text= wormper ,
+        fill=TEXT_DIM,
+        font=("Consolas", 9),
+        anchor="w", tags= HUD_TAG
+    )
+    canvas.create_text(
+        40, y+100,
+        text= bacteriaper ,
+        fill=TEXT_DIM,
+        font=("Consolas", 9),
+        anchor="w", tags= HUD_TAG
+    )
+
+    A= pat ("A")
+    G= pat ("G")
+    C= pat ("C")
+    T= pat ("T")
+
+    results = [
+        "A count: " + str(A),
+        "G count: " + str(G),
+        "C count: " + str(C)  ,
+        "T count: " + str(T),
+        "Tree Nodes: " + length()
+    ]
+
+    y = y+100 +140
+
+    canvas.create_text(
+        40, y-20,
+        text="ANALYSIS OUTPUT",
+        fill=CYAN,
+        font=("Consolas", 14),
+        anchor="w", tags = HUD_TAG
+    )
+
+    for r in results:
+        canvas.create_text(
+            40, y,
+            text=r,
+            fill=GREEN,
+            font=("Consolas", 10),
+            anchor="w", tags = HUD_TAG
+        )
+        y += 22
+    
+
 
 def draw_hud_text():
     canvas.create_text(
@@ -193,50 +321,16 @@ def draw_hud_text():
         font=("Consolas", 10),
         anchor="w", tags = UI_TAG
     )
+
+    animal_hud_text()
+
     
-    y = 130
-    chimp = loadexistingfile(CHIMPDNA, "chimpanzee")
-    chimplargestcommon, count= call_max_repetition(chimp,3)
-    chimptext=count
-    for i in range(6):
-        canvas.create_text(
-            40, y,
-            text=chimptext,
-            fill=TEXT_DIM,
-            font=("Consolas", 9),
-            anchor="w", tags= UI_TAG
-        )
-        y += 20
+
+  
 
 # ================= RESULTS =================
 
-def draw_results():
-    canvas.create_text(
-        40, 400,
-        text="ANALYSIS OUTPUT",
-        fill=CYAN,
-        font=("Consolas", 14),
-        anchor="w", tags = UI_TAG
-    )
 
-    results = [
-        "Unique Region [x=5] : ACATG",
-        "Unique Region [x=5] : ATGTC",
-        "Largest Repeat     : ATGT",
-        "Suffix Tree Nodes  : 128",
-        "Execution Time     : 0.0021s"
-    ]
-
-    y = 430
-    for r in results:
-        canvas.create_text(
-            40, y,
-            text=r,
-            fill=GREEN,
-            font=("Consolas", 10),
-            anchor="w", tags = UI_TAG
-        )
-        y += 22
 
 # ================= HALO INIT =================
 
@@ -495,11 +589,13 @@ def updateradiovis():
     inactive_fill = "#002222"
     inactive_outline = "#005555"
     rect_a, _ = radiobtn["A"]
+    animal_hud_text()
     if selectedseq == "A":
         canvas.itemconfig(rect_a, fill=active_fill, outline=active_outline)
     else:
         canvas.itemconfig(rect_a, fill=inactive_fill, outline=inactive_outline)
     rect_b,_ = radiobtn["B"]
+    
     if selectedseq == "B":
         canvas.itemconfig(rect_b, fill=active_fill, outline=active_outline)
     else:
@@ -577,7 +673,7 @@ init_particles(WIDTH // 2 - 185, 1500)
 
 draw_grid()
 draw_hud_text()
-draw_results()
+
 
 draw_rotating_dna(WIDTH // 2 +130 , HEIGHT // 2 -200 , points=POINTS)
 def on_click():
