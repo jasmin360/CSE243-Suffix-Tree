@@ -45,7 +45,7 @@ public:
              string& LCS, string currentPath);
     void collectLeafIndices(Node* node, int*& arr, int& count, int& capacity);
     void findMaxRepetition(Node* node, int x, int& count,
-    int currentLength, string& currentPath, string& res);
+    int currentLength, string currentPath, string& res);
 
     class ActivePoint{
     public:
