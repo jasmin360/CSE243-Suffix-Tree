@@ -12,7 +12,11 @@ Suffix::Suffix()
     globalEnd = new End(-1);             // global end starts at -1 because only root is available and it increases with phase
 }
 
-Suffix::~Suffix() {}
+Suffix::~Suffix() {
+    delete root;
+    delete activepoint;
+    delete globalEnd;
+}
 
 // --- End Class Implementation ---
 Suffix::End::End(int end)
@@ -20,7 +24,6 @@ Suffix::End::End(int end)
     this->end = end;
 }
 
-Suffix::End::~End() {}
 
 // --- Node Class Implementation ---
 Suffix::Node::Node(int i, End *e)
@@ -36,7 +39,16 @@ Suffix::Node::Node(int i, End *e)
     }
 }
 
-Suffix::Node::~Node() {}
+Suffix::Node::~Node() {
+    for(int i = 0; i < 6; i++){
+        if(child[i] != nullptr){
+            delete child[i];  //Delete every child that has non null value
+        }
+    }
+    suffixLink = nullptr;
+
+}
+
 
 // --- ActivePoint Class Implementation ---
 Suffix::ActivePoint::ActivePoint(Node *node)
@@ -46,7 +58,6 @@ Suffix::ActivePoint::ActivePoint(Node *node)
     activelength = 0;  // active length starts at 0
 }
 
-Suffix::ActivePoint::~ActivePoint() {}
 
 // --- Main Algorithm Functions ---
 

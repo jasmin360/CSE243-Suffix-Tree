@@ -12,7 +12,6 @@ public:
     class End{
     public:
         End(int end);
-        ~End();
         int end;
     };
 
@@ -45,10 +44,10 @@ public:
     void findMaxRepetition(Node* node, int x, int& count,
     int currentLength, string& currentPath, string& res);
 
-    class ActivePoint{
+    class ActivePoint
+    {
     public:
         ActivePoint(Node* node);
-        ~ActivePoint();
         Node* activeNode;
         int activeEdge;
         int activelength;
