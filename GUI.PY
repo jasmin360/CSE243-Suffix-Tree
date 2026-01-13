@@ -7,6 +7,8 @@ from ctypes import c_char_p, c_int, POINTER
 import os
 
 
+
+######################## PATHS
 dll_path = r"c:\New folder\ds project\CSE243-Suffix-Tree\dna.dll"
 CHIMPDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\CHIMPANZEE.txt"
 FISHDNA= r"c:\New folder\ds project\CSE243-Suffix-Tree\DNAs\FISH.txt"
@@ -22,7 +24,12 @@ dna = ctypes.CDLL(dll_path)
 
 print("DLL LOADED SUCCESSFULLY")
 
-# ================= FUNCTION SIGNATURES =================
+
+
+
+
+
+################################## CPP FUNCTION SIGNATURES
 
 # int* dna_search_pattern(const char*, const char*, int*)
 dna.dna_search_pattern.argtypes = [
@@ -34,9 +41,11 @@ dna.dna_search_pattern.restype = ctypes.POINTER(ctypes.c_int)
 
 
 # const char** dna_unique_region(const char*, int)
-dna.dna_unique_regions.argtypes = [ctypes.c_char_p, ctypes.c_int]
+dna.dna_unique_regions.argtypes = [
+    ctypes.c_char_p, 
+    ctypes.c_int
+]
 dna.dna_unique_regions.restype = ctypes.POINTER(ctypes.c_char_p)
-
 
 
 # const char* dna_max_repetition(const char*, int, int*)
@@ -58,7 +67,10 @@ dna.dna_largest_common.restype = ctypes.c_char_p
 
 
 
-#SDJBCKJSDHFKJSDHFKSJDHFSJKFH
+
+
+
+#################################### CALLING OF CPP FUNCTIONS
 def call_search_pattern(sequence, pattern):
     count = ctypes.c_int()
 
@@ -107,14 +119,19 @@ def call_unique_region(sequence, x):
         if ptr:
             results.append(ptr.decode("utf-8"))
         else:
-            results.append("")   # or "N/A"
+            results.append("")  
 
     return results
 
 
 
 
-# ================= CONFIG =================
+
+
+
+
+
+########################### CONFIGURATIONS
 
 WIDTH = 1698
 HEIGHT = 1100
@@ -122,13 +139,13 @@ HEIGHT = 1100
 BG_MAIN = "#020508"
 BG_GRID = "#06181a"
 
-# --- Particles Config ---
+#particle configurations
 PARTICLE_COUNT = 150
 PARTICLE_COLOR = "#0a4a4f" 
-PARTICLE_LINE_COLOR = "#042024" # Very faint line color
+PARTICLE_LINE_COLOR = "#042024" 
 PARTICLE_MIN_RADIUS = 120 
 PARTICLE_MAX_RADIUS = 350
-PARTICLE_CONNECT_DIST = 90      # Distance to trigger a line connection
+PARTICLE_CONNECT_DIST = 90      
 
 CYAN = "#00FFFF"
 CYAN_DIM = "#005555"
@@ -153,7 +170,15 @@ HALO_POINTS = 3
 
 halo_radius_offsets = {}
 
-# ================= WINDOW =================
+
+
+
+
+
+
+
+
+######################## MAIN WINDOW
 
 root = tk.Tk()
 root.title("DNA Suffix Tree Analyzer")
@@ -177,16 +202,16 @@ dna_database = {
     "bacteria": "Empty"
 }
 
-# ================= GRID =================
-
+#background grid
 def draw_grid():
     for x in range(0, WIDTH, 40):
         canvas.create_line(x, 0, x, HEIGHT, fill=BG_GRID, tags= UI_TAG)
     for y in range(0, HEIGHT, 40):
         canvas.create_line(0, y, WIDTH, y, fill=BG_GRID, tags= UI_TAG)
 
-# ================= HUD =================
 
+
+#HUD
 def commonseq(data):
     if dna_database[selectedseq] != "Empty" and data!=None:
         x= call_largest_common(data,dna_database[selectedseq])
@@ -208,6 +233,7 @@ def length():
         return "..."
     
 
+#analysis display
 def animal_hud_text():
     y=135
     canvas.delete(HUD_TAG)
@@ -289,7 +315,7 @@ def animal_hud_text():
         y += 22
     
 
-
+#non analysis parts of HUD
 def draw_hud_text():
     canvas.create_text(
         40, 30,
@@ -311,9 +337,7 @@ def draw_hud_text():
 
     
 
-  
 
-# ================= RESULTS =================
 
 
 
@@ -434,7 +458,7 @@ def draw_rotating_dna(cx, cy, length=1350, amplitude=130, points=110):
 
     # --- 3. DRAW PARTICLE DOTS ---
     for p in active_points:
-        radius = 2 * p["scale"]
+        radius = 3
         dna_items.append(
             canvas.create_oval(p["x"]-radius, p["y"]-radius, p["x"]+radius, p["y"]+radius, 
                                fill=PARTICLE_COLOR, outline="", tags=DNA_TAG)
@@ -503,12 +527,16 @@ def draw_rotating_dna(cx, cy, length=1350, amplitude=130, points=110):
 
 
 
-# ================= BUTTON =================
+
+
+
+
+
+
+##################### BUTTONS
+
 def create_rounded_rect(x1, y1, x2, y2, r, **kwargs):
-    """
-    Draw a rounded rectangle on the canvas.
-    r = corner radius
-    """
+    #rounded rectangle where r is corner radius
     points = [
         x1+r, y1,
         x2-r, y1,
@@ -565,7 +593,11 @@ def create_canvas_button(x, y, w, h, text, command,
     return rect, label
 
 
-##### INPUT SEQUENCES
+
+
+
+
+##################### INPUT SEQUENCES
 selectedseq = "A"
 radiobtn = {}
 def updateradiovis():
@@ -648,32 +680,14 @@ def create_radio_group_ui():
     updateradiovis()
 
 
-# ================= START =================
-draw_grid()
-POINTS = 110
-init_halo_offsets(POINTS)
-
-# Initialize the floating particles
-init_particles(WIDTH // 2 - 185, 1500)
 
 
-draw_hud_text()
 
-
-draw_rotating_dna(WIDTH // 2 +130 , HEIGHT // 2 -200 , points=POINTS)
-def on_click():
-    # Retrieve the data we loaded earlier
-    data = dna_database[selectedseq]
-    print("------------------------------------------------")
-    print(f"TARGET          : SEQUENCE {selectedseq}")
-    print(f"INPUT DATA      : {data[:1000]}...") 
-    print("------------------------------------------------")
-
+######################### FUNCTION INPUTS ENTRY
 
 BOXEND= 600
 PERSIDE=112.25
 BOX= 424.5
-
 
 searchpat = tk.StringVar()
 x1= tk.StringVar()
@@ -706,7 +720,6 @@ input_label = tk.Label(
 input_label.place(x=40, y=BOXEND+BASEEE)
 
 
-
 entry2 = tk.Entry(
     root,
     textvariable=x1,
@@ -730,7 +743,6 @@ input_label2 = tk.Label(
 )
 
 input_label2.place(x=BOX *2 + 40, y=BOXEND+BASEEE)
-
 
 
 entry3 = tk.Entry(
@@ -758,6 +770,15 @@ input_label3 = tk.Label(
 input_label3.place(x=BOX *3 + 40, y=BOXEND+BASEEE)
 
 
+
+
+
+
+
+
+
+##########################  OUTPUT PANEL CLASS
+
 class OutputPanel:
     def __init__(self, parent, x, y, w, h, bg="#020508"):
         self.bg = bg
@@ -765,33 +786,29 @@ class OutputPanel:
         self.frame = tk.Frame(parent, bg=bg)
         self.frame.place(x=x, y=y, width=w, height=h)
 
-        # ---- Canvas ----
+        #the output canvas
         self.canvas = tk.Canvas(
             self.frame,
             bg=bg,
-            highlightthickness=0,   # ← removes border
+            highlightthickness=0,   
             bd=0     
         )
         self.canvas.pack(fill="both", expand=True)
 
-        # ---- Inner content ----
+        #inner content
         self.inner = tk.Frame(self.canvas, bg=bg)
         self.window_id = self.canvas.create_window(
             (0, 0), window=self.inner, anchor="nw"
         )
 
-        # ---- Resize + scroll ----
-        self.inner.bind("<Configure>", self._update_scroll)
-        self.canvas.bind("<Configure>", self._resize_inner)
-
-        # ---- Mouse wheel (THIS IS SCROLLING) ----
+        # scroll
         self.canvas.bind("<Enter>", self._bind_mouse)
         self.canvas.bind("<Leave>", self._unbind_mouse)
 
         self.labels = []
         self.wrap = w - 16
 
-    # ================= INTERNAL =================
+    # scrolls
 
     def _update_scroll(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -832,6 +849,11 @@ class OutputPanel:
 
 
 
+
+
+
+############################# OUTPUT PANELS PER EACH
+
 OUTPUT_W = 400
 OUTPUT_H = 300
 
@@ -842,6 +864,14 @@ out_unique = OutputPanel(root, BOX*3+PERSIDE-80,BOXEND+110, OUTPUT_W, OUTPUT_H)
 
 
 
+
+
+
+
+
+
+
+##################################### ON BUTTON CLICK COMMANDS
 
 def on_search_click():
     out_search.clear()
@@ -865,8 +895,6 @@ def on_search_click():
 
     out_search.write("Matches at indices:", "#00ffff")
     out_search.write(", ".join(map(str, matches)))
-
-
 
 
 def on_maxrep_click():
@@ -936,9 +964,7 @@ def on_lcr_click():
 
 
 
-
-
-
+######################## FUNCTION START BUTTONS
 
 create_canvas_button(
     x=PERSIDE,
@@ -978,14 +1004,30 @@ create_canvas_button(
 
 
 
+# ================= START =================
+draw_grid()
+POINTS = 110
+init_halo_offsets(POINTS)
+
+# Initialize the floating particles
+init_particles(WIDTH // 2 - 185, 1500)
 
 
+draw_hud_text()
+
+
+draw_rotating_dna(WIDTH // 2 +130 , HEIGHT // 2 -200 , points=POINTS)
+def on_click():
+    # Retrieve the data we loaded earlier
+    data = dna_database[selectedseq]
+    print("------------------------------------------------")
+    print(f"TARGET          : SEQUENCE {selectedseq}")
+    print(f"INPUT DATA      : {data[:1000]}...") 
+    print("------------------------------------------------")
 
 
 create_radio_group_ui()
 canvas.tag_raise(UI_TAG)
-
-
 
 
 root.mainloop()
