@@ -399,7 +399,7 @@ void Suffix::collectLeafIndices(Node *node, int *&arr, int &count, int &capacity
         return;
     }
 
-    for (int i = 0; i < 5; i++) // for all possible children
+    for (int i = 0; i <= 5; i++) // for all possible children
     {
         collectLeafIndices(node->child[i], arr, count, capacity); // recursively collect leaf indices from children
     }
