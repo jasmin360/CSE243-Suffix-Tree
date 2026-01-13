@@ -234,41 +234,26 @@ def animal_hud_text():
         font=("Consolas", 9),
         anchor="w", tags= HUD_TAG
     )
-    canvas.create_text(
-        40, y+20,
-        text= chimpper ,
+
+    results=[
+        chimpper,
+        fishper,
+        duckper,
+        wormper,
+        bacteriaper
+    ]
+    y=y+20
+    for r in results:
+        canvas.create_text(
+        40, y,
+        text= r ,
         fill=TEXT_DIM,
         font=("Consolas", 9),
         anchor="w", tags= HUD_TAG
-    )
-    canvas.create_text(
-        40, y+40,
-        text= fishper ,
-        fill=TEXT_DIM,
-        font=("Consolas", 9),
-        anchor="w", tags= HUD_TAG
-    )
-    canvas.create_text(
-        40, y+60,
-        text= duckper ,
-        fill=TEXT_DIM,
-        font=("Consolas", 9),
-        anchor="w", tags= HUD_TAG
-    )
-    canvas.create_text(
-        40, y+80,
-        text= wormper ,
-        fill=TEXT_DIM,
-        font=("Consolas", 9),
-        anchor="w", tags= HUD_TAG
-    )
-    canvas.create_text(
-        40, y+100,
-        text= bacteriaper ,
-        fill=TEXT_DIM,
-        font=("Consolas", 9),
-        anchor="w", tags= HUD_TAG
-    )
+        )
+        y += 20
+
+
 
     A= pat ("A")
     G= pat ("G")
@@ -283,7 +268,7 @@ def animal_hud_text():
         "Tree Nodes: " + str(length())
     ]
 
-    y = y+100 +140
+    y = y+100 
 
     canvas.create_text(
         40, y-20,
@@ -664,14 +649,14 @@ def create_radio_group_ui():
 
 
 # ================= START =================
-
+draw_grid()
 POINTS = 110
 init_halo_offsets(POINTS)
 
 # Initialize the floating particles
 init_particles(WIDTH // 2 - 185, 1500)
 
-draw_grid()
+
 draw_hud_text()
 
 
