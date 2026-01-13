@@ -191,6 +191,7 @@ canvas.pack(fill="both", expand=True)
 DNA_TAG = "dna"
 UI_TAG  = "ui"
 HUD_TAG = "hud"
+GRID_TAG= "grid"
 
 dna_database = {
     "A": "Empty", 
@@ -205,9 +206,9 @@ dna_database = {
 #background grid
 def draw_grid():
     for x in range(0, WIDTH, 40):
-        canvas.create_line(x, 0, x, HEIGHT, fill=BG_GRID, tags= UI_TAG)
+        canvas.create_line(x, 0, x, HEIGHT, fill=BG_GRID, tags= GRID_TAG)
     for y in range(0, HEIGHT, 40):
-        canvas.create_line(0, y, WIDTH, y, fill=BG_GRID, tags= UI_TAG)
+        canvas.create_line(0, y, WIDTH, y, fill=BG_GRID, tags= GRID_TAG)
 
 
 
@@ -825,7 +826,7 @@ class OutputPanel:
     def _on_scroll(self, event):
         self.canvas.yview_scroll(int(-event.delta / 120), "units")
 
-    # ================= PUBLIC =================
+
 
     def clear(self):
         for lbl in self.labels:
@@ -1004,7 +1005,8 @@ create_canvas_button(
 
 
 
-# ================= START =================
+##############START
+
 draw_grid()
 POINTS = 110
 init_halo_offsets(POINTS)
@@ -1017,17 +1019,10 @@ draw_hud_text()
 
 
 draw_rotating_dna(WIDTH // 2 +130 , HEIGHT // 2 -200 , points=POINTS)
-def on_click():
-    # Retrieve the data we loaded earlier
-    data = dna_database[selectedseq]
-    print("------------------------------------------------")
-    print(f"TARGET          : SEQUENCE {selectedseq}")
-    print(f"INPUT DATA      : {data[:1000]}...") 
-    print("------------------------------------------------")
-
 
 create_radio_group_ui()
 canvas.tag_raise(UI_TAG)
+canvas.tag_lower(GRID_TAG)
 
 
 root.mainloop()
