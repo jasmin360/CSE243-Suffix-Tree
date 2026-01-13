@@ -10,7 +10,6 @@ Suffix::Suffix()
     root = new Node(0, nullptr);         // start zero end null for root node
     activepoint = new ActivePoint(root); // active point starts at root
     globalEnd = new End(-1);             // global end starts at -1 because only root is available and it increases with phase
-    currentStringID = -1;                // initially no string is being processed
 }
 
 Suffix::~Suffix() {}
